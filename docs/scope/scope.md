@@ -34,9 +34,9 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 ### 1. Stack & architecture
 Decide the stack for a mobile friendly, installable web app and scaffold a runnable project so every later slice builds on real structure.
 **Done when:** the stack is recorded in a spec, and the empty scaffold boots locally, passes build, and loads well on a phone screen.
-spec [0001](../specs/0001-stack-architecture/index.md) · code in _(set by /develop)_
+spec [0001](../specs/0001-stack-architecture/index.md) · code in `src/`, `public/sw.js`
 - [x] Decide the stack (spec): `/architect stack & architecture`
-- [ ] Scaffold from the decision: `/develop stack & architecture`
+- [x] Scaffold from the decision: `/develop stack & architecture`
 - [ ] Verify it: `/check verify stack & architecture`
 - [ ] Test it: `/test stack & architecture`
 
