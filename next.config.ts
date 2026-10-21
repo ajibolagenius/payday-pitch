@@ -1,4 +1,4 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from "next"
 
 // cacheComponents stays off (spec 0001): signed in data is never cached on the server.
 const nextConfig: NextConfig = {
@@ -10,6 +10,6 @@ const nextConfig: NextConfig = {
       },
     },
   },
-};
+}
 
-export default nextConfig;
+export default nextConfig

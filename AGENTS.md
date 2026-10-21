@@ -2,6 +2,14 @@
 
 A mobile friendly, installable web app that helps salary earners build wealth by lining up each month's pay as a football formation: fixed costs as real amounts, debts fully covered, the rest put to work. Plan: [docs/scope/scope.md](docs/scope/scope.md). Stack and architecture: [docs/specs/0001-stack-architecture/index.md](docs/specs/0001-stack-architecture/index.md).
 
+## Stack
+
+TypeScript strict, Node 24 (`.nvmrc`, `engines`), pnpm 11, Next.js 16 App Router with Turbopack, React 19, Tailwind CSS v4 (tokens in `src/app/globals.css`). Supabase (Postgres, RLS, Auth), Zod 4, shadcn/ui, Vitest, Playwright: decided in spec 0001, not yet in the scaffold. Full table: [spec 0001](docs/specs/0001-stack-architecture/index.md).
+
+## Build approach
+
+Tracer Bullet: one thin, real thread through the whole loop first, then each slice thickens one segment end to end. Workflow level Beta (`/check verify`, then `/test`). From [the scope header](docs/scope/scope.md).
+
 ## Golden rules
 
 These govern every change, by any person or agent. They override any skill or tool default.
@@ -22,6 +30,40 @@ Mandatory skills for this project. Read a skill's `SKILL.md` before doing any wo
 |---|---|---|
 | **secure-me** | `~/.gemini/config/skills/secure-me/SKILL.md` | Any time code is reviewed, audited, or hardened for security; when touching auth, RLS policies, Server Actions, secrets, CSP headers, rate limiting, or any banking/payment integration; when the user mentions OWASP, vulnerability, penetration test, or compliance. Also activate proactively before writing any new code that touches auth, database access, money, or user data. |
 | **ponytail** | `~/.gemini/config/plugins/ponytail/skills/ponytail/SKILL.md` | Any coding task: writing, adding, refactoring, fixing, reviewing, or designing code, and choosing libraries or dependencies. Also activate when the user says "ponytail", "be lazy", "lazy mode", "simplest solution", "minimal solution", "yagni", "do less", "shortest path", or complains about over-engineering, bloat, boilerplate, or unnecessary dependencies. Supports intensity levels: `lite` · `full` (default) · `ultra`. |
+
+Project local skills in `.claude/skills/`, add a row when you touch their area:
+
+- [resend](.claude/skills/resend/): `resend/resend-skills`, email sending and templates.
+- [email-best-practices](.claude/skills/email-best-practices/): `resend/email-best-practices`, deliverability rules for auth and reminder emails.
+- [vitest](.claude/skills/vitest/): `antfu/skills`, unit test conventions (tests sit beside source as `*.test.ts`).
+
+## Commands
+
+```bash
+pnpm install
+pnpm dev          # dev server (re-adds the next rules block below; keep it committed)
+pnpm build
+pnpm typecheck    # next typegen && tsc --noEmit
+pnpm test:e2e     # Playwright, specs in tests/e2e
+```
+
+## Specs
+
+Architecture specs live in `docs/specs/NNNN-slug/index.md`. The living product plan lives in `docs/scope/scope.md`. Spec 0001 is binding: its conventions section governs every slice.
+
+## Rules
+
+- One feature per branch (`feat/`, `fix/`, `chore/`), merged only by PR, no automatic commits (see Golden rules).
+- Files are `kebab-case`, imports use the `@/` alias for `src/`.
+- `src/domain/` is pure TypeScript: no imports from next, react, or supabase.
+- Money is integer minor units (kobo) with an ISO currency code, handled only in `src/domain/money.ts`. No floats. "This month" computes in `Africa/Lagos`, never from the server UTC clock.
+- Every write is a Server Action built with `authedAction()` (Zod validated, returns `ActionResult`, expected failures never throw). Actions never accept a `user_id` from the client.
+- Identify users with `supabase.auth.getClaims()`, never `getSession()`. Every table gets RLS plus explicit grants to `authenticated`, and a Vitest isolation test, in the same PR.
+- No Vercel only runtime APIs (portability rule, spec 0001).
+
+## Context files
+
+- Spec 0001 `## Architecture conventions` is the offline and service worker guide for `public/sw.js` (registry at [docs/scope/scope.md](docs/scope/scope.md)).
 
 <!-- BEGIN:nextjs-agent-rules -->
 

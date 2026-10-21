@@ -1,6 +1,6 @@
-import { defineConfig, devices } from "@playwright/test";
+import { defineConfig, devices } from "@playwright/test"
 
-const PORT = 3200;
+const PORT = 3200
 
 // Runs against a production build: the service worker only registers there (spec 0001).
 export default defineConfig({
@@ -14,4 +14,4 @@ export default defineConfig({
     url: `http://localhost:${PORT}`,
     timeout: 180_000,
   },
-});
+})
