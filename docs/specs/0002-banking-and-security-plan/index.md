@@ -20,12 +20,12 @@ Neither area has active implementation. Both extend the `## Deferred` section of
 
 The current scope deliberately **plans and tracks only — it never connects to a bank or moves money.** Banking integration is a natural next chapter with two distinct stages:
 
-| Stage | Description | Regulatory bar |
-|---|---|---|
-| **Read-only sync** | Pull balance & transaction history to auto-fill income streams and spending | Lower — data aggregation only |
-| **Automated money moves** | Actually split and route funds to savings pots, wallets, or accounts | High — requires a Payment Service Provider (PSP) licence or partnership |
+| Stage                     | Description                                                                 | Regulatory bar                                                          |
+| ------------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| **Read-only sync**        | Pull balance & transaction history to auto-fill income streams and spending | Lower — data aggregation only                                           |
+| **Automated money moves** | Actually split and route funds to savings pots, wallets, or accounts        | High — requires a Payment Service Provider (PSP) licence or partnership |
 
-Both stages are already noted as deferred in `scope.md`. This spec fleshes out *how* they would work and what the landscape looks like.
+Both stages are already noted as deferred in `scope.md`. This spec fleshes out _how_ they would work and what the landscape looks like.
 
 ---
 
@@ -33,39 +33,39 @@ Both stages are already noted as deferred in `scope.md`. This spec fleshes out *
 
 #### Traditional Banks (via Open Banking / direct API)
 
-| Bank | API programme | Notes |
-|---|---|---|
-| GTBank / Guaranty Trust | GTConnect / partner API | Has a developer portal; requires formal partnership |
-| Sterling Bank | Sterling OneBank API | Active fintech-friendly programme |
-| Access Bank | Access Bank Open Banking | CBN Open Banking framework compliant |
-| Zenith Bank | Corporate API (bulk payment, account enquiry) | Mostly corporate; watch for retail Open Banking expansion |
-| UBA | UBA Connect API | Pan-African reach; useful later for multi-country |
-| First Bank | FirstBank OpenBanking | Available, slower onboarding |
+| Bank                    | API programme                                 | Notes                                                     |
+| ----------------------- | --------------------------------------------- | --------------------------------------------------------- |
+| GTBank / Guaranty Trust | GTConnect / partner API                       | Has a developer portal; requires formal partnership       |
+| Sterling Bank           | Sterling OneBank API                          | Active fintech-friendly programme                         |
+| Access Bank             | Access Bank Open Banking                      | CBN Open Banking framework compliant                      |
+| Zenith Bank             | Corporate API (bulk payment, account enquiry) | Mostly corporate; watch for retail Open Banking expansion |
+| UBA                     | UBA Connect API                               | Pan-African reach; useful later for multi-country         |
+| First Bank              | FirstBank OpenBanking                         | Available, slower onboarding                              |
 
 #### Digital / Neo Banks
 
-| Bank | API / integration route | Notes |
-|---|---|---|
-| **Kuda Bank** | No public API yet; watch for Open Banking compliance | Most likely to open up — tech-native |
-| **PiggyVest** | No public API; savings are internal products | Partnership/referral model more realistic than technical integration |
-| **PocketApp** | No public API yet | Same parent group as PiggyVest |
-| **Moniepoint** | Business API (payments, collections) | Strong for disbursements; retail savings API pending |
-| **OPay** | Payment APIs (transfers, wallet) | Aggressive ecosystem; useful for disbursement |
-| **Carbon** | Savings & loan APIs (partner access) | Possible savings routing target |
-| **Cowrywise** | Investment API (partner programme) | Best fit for the Forwards (investment) position |
-| **Stash (ARM)** | API under ARM investment platform | Treasury Bills, Money Market — aligns with Feature 12 |
+| Bank            | API / integration route                              | Notes                                                                |
+| --------------- | ---------------------------------------------------- | -------------------------------------------------------------------- |
+| **Kuda Bank**   | No public API yet; watch for Open Banking compliance | Most likely to open up — tech-native                                 |
+| **PiggyVest**   | No public API; savings are internal products         | Partnership/referral model more realistic than technical integration |
+| **PocketApp**   | No public API yet                                    | Same parent group as PiggyVest                                       |
+| **Moniepoint**  | Business API (payments, collections)                 | Strong for disbursements; retail savings API pending                 |
+| **OPay**        | Payment APIs (transfers, wallet)                     | Aggressive ecosystem; useful for disbursement                        |
+| **Carbon**      | Savings & loan APIs (partner access)                 | Possible savings routing target                                      |
+| **Cowrywise**   | Investment API (partner programme)                   | Best fit for the Forwards (investment) position                      |
+| **Stash (ARM)** | API under ARM investment platform                    | Treasury Bills, Money Market — aligns with Feature 12                |
 
 #### The Aggregator Layer (recommended first step)
 
 Rather than integrating each bank directly, use an **Open Banking aggregator**. These hold the licences, handle consent flows, and normalise the data across banks:
 
-| Provider | Type | Notes |
-|---|---|---|
-| **Mono** | Account data + direct debit | Best known in Nigeria; real bank connections, CBN licensed |
-| **Okra** | Account data + payments | Strong enterprise focus; good for transaction enrichment |
-| **Stitch** | Payments + data (SA + NG) | Multi-country; useful when expanding beyond Nigeria |
-| **Paystack** | Payments (Stripe-owned) | Not data aggregation, but best-in-class for disbursements |
-| **Flutterwave** | Payments + collections | Pan-African; useful for cross-bank sends |
+| Provider        | Type                        | Notes                                                      |
+| --------------- | --------------------------- | ---------------------------------------------------------- |
+| **Mono**        | Account data + direct debit | Best known in Nigeria; real bank connections, CBN licensed |
+| **Okra**        | Account data + payments     | Strong enterprise focus; good for transaction enrichment   |
+| **Stitch**      | Payments + data (SA + NG)   | Multi-country; useful when expanding beyond Nigeria        |
+| **Paystack**    | Payments (Stripe-owned)     | Not data aggregation, but best-in-class for disbursements  |
+| **Flutterwave** | Payments + collections      | Pan-African; useful for cross-bank sends                   |
 
 > **Recommended approach:** Start with **Mono** for read-only account sync (income confirmation, spending enrichment) and **Paystack or Flutterwave** for any future money movement. This avoids direct bank integrations until volume justifies individual partnerships.
 
@@ -114,29 +114,29 @@ When the time comes, enrol these three entries under `## Deferred` in `scope.md`
 
 ### What the current stack does well
 
-| Control | How it is implemented | Strength |
-|---|---|---|
-| Data isolation | Supabase RLS, `auth.uid()` ownership check on every policy, per-table Vitest isolation tests | ✅ Strong — isolation is in the DB, not just app code |
-| Input validation | Zod 4 on every Server Action input | ✅ Strong — no raw user data reaches the DB |
-| Auth | Supabase Auth (JWT, cookie sessions via `@supabase/ssr`, `getClaims()` — never `getSession()`) | ✅ Good — token verification is local, no session round-trip |
-| Secret handling | `SUPABASE_SECRET_KEY` is server-only; no secrets in `NEXT_PUBLIC_` | ✅ Good |
-| Money precision | Integer kobo + largest remainder allocation — no floats anywhere in a money path | ✅ Critical — this is the right choice and already implemented |
-| Transport | Vercel + Supabase enforce HTTPS everywhere | ✅ Baseline covered |
-| Write gate | Every Server Action wrapped by `authedAction()` | ✅ No action bypasses auth |
+| Control          | How it is implemented                                                                          | Strength                                                       |
+| ---------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Data isolation   | Supabase RLS, `auth.uid()` ownership check on every policy, per-table Vitest isolation tests   | ✅ Strong — isolation is in the DB, not just app code          |
+| Input validation | Zod 4 on every Server Action input                                                             | ✅ Strong — no raw user data reaches the DB                    |
+| Auth             | Supabase Auth (JWT, cookie sessions via `@supabase/ssr`, `getClaims()` — never `getSession()`) | ✅ Good — token verification is local, no session round-trip   |
+| Secret handling  | `SUPABASE_SECRET_KEY` is server-only; no secrets in `NEXT_PUBLIC_`                             | ✅ Good                                                        |
+| Money precision  | Integer kobo + largest remainder allocation — no floats anywhere in a money path               | ✅ Critical — this is the right choice and already implemented |
+| Transport        | Vercel + Supabase enforce HTTPS everywhere                                                     | ✅ Baseline covered                                            |
+| Write gate       | Every Server Action wrapped by `authedAction()`                                                | ✅ No action bypasses auth                                     |
 
 ---
 
 ### Gaps to address before any financial transaction touches the system
 
-| Gap | Risk | Recommended fix | When |
-|---|---|---|---|
-| No rate limiting on Server Actions | Brute-force, enumeration, or denial-of-wallet attacks | Upstash Ratelimit (already a scope candidate) | Before Go Public (Slice 7) |
-| No CSRF protection audit | Server Actions have some built-in protection in Next.js 16, but it needs explicit verification | Verify `Origin` header checks in `authedAction()`; document it | Feature 2 / Audit |
-| No Content Security Policy (CSP) | XSS could leak auth tokens from the browser | Strict CSP headers in `next.config.ts` — nonces for inline scripts, no `unsafe-inline` | Feature 4 / Design system |
-| No audit log / immutable trail | No record of what changed and when for each match or formation edit | Add an `audit_log` table (append-only, `security definer`, in `private` schema) | Before money moves |
-| No secrets rotation plan | A leaked Supabase key has no documented revocation process | Document key rotation steps and add to runbook | Before Go Public |
-| Supabase free tier has no PITR | Data loss window is large; a corruption event loses everything | Supabase Pro before real users (already in `scope.md`) | Slice 7 |
-| No automated dependency scanning | Vulnerable npm packages silently accumulate | Add `pnpm audit` to CI; enable Dependabot | Feature 2 |
+| Gap                                | Risk                                                                                           | Recommended fix                                                                        | When                       |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | -------------------------- |
+| No rate limiting on Server Actions | Brute-force, enumeration, or denial-of-wallet attacks                                          | Upstash Ratelimit (already a scope candidate)                                          | Before Go Public (Slice 7) |
+| No CSRF protection audit           | Server Actions have some built-in protection in Next.js 16, but it needs explicit verification | Verify `Origin` header checks in `authedAction()`; document it                         | Feature 2 / Audit          |
+| No Content Security Policy (CSP)   | XSS could leak auth tokens from the browser                                                    | Strict CSP headers in `next.config.ts` — nonces for inline scripts, no `unsafe-inline` | Feature 4 / Design system  |
+| No audit log / immutable trail     | No record of what changed and when for each match or formation edit                            | Add an `audit_log` table (append-only, `security definer`, in `private` schema)        | Before money moves         |
+| No secrets rotation plan           | A leaked Supabase key has no documented revocation process                                     | Document key rotation steps and add to runbook                                         | Before Go Public           |
+| Supabase free tier has no PITR     | Data loss window is large; a corruption event loses everything                                 | Supabase Pro before real users (already in `scope.md`)                                 | Slice 7                    |
+| No automated dependency scanning   | Vulnerable npm packages silently accumulate                                                    | Add `pnpm audit` to CI; enable Dependabot                                              | Feature 2                  |
 
 ---
 
@@ -157,13 +157,13 @@ flowchart TD
     F --> I["Python for fraud / anomaly\ndetection models (scikit-learn,\nLightGBM, Feast)"]
 ```
 
-| Language | When it genuinely adds value | When it does not |
-|---|---|---|
-| **Go** | High-throughput payment orchestration service; real-time fraud scoring hot path; latency-critical webhook consumer | Everything in the current scope; low-to-mid volume API integration |
-| **Python** | ML-based fraud detection, transaction categorisation models, data science work on spending patterns | Anything UI, auth, or CRUD — overkill for the current data volume |
-| **C# / .NET** | Enterprise bank partner integrations that mandate a .NET SDK (rare in Nigeria) | Virtually nothing in this project's context |
-| **C / C++** | Cryptographic primitives (never roll your own crypto — use platform TLS) | Everything in this project |
-| **Rust** | Blazing-fast serialisation / WASM modules if needed in-browser | Not justified at this stage |
+| Language      | When it genuinely adds value                                                                                       | When it does not                                                   |
+| ------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| **Go**        | High-throughput payment orchestration service; real-time fraud scoring hot path; latency-critical webhook consumer | Everything in the current scope; low-to-mid volume API integration |
+| **Python**    | ML-based fraud detection, transaction categorisation models, data science work on spending patterns                | Anything UI, auth, or CRUD — overkill for the current data volume  |
+| **C# / .NET** | Enterprise bank partner integrations that mandate a .NET SDK (rare in Nigeria)                                     | Virtually nothing in this project's context                        |
+| **C / C++**   | Cryptographic primitives (never roll your own crypto — use platform TLS)                                           | Everything in this project                                         |
+| **Rust**      | Blazing-fast serialisation / WASM modules if needed in-browser                                                     | Not justified at this stage                                        |
 
 > **The correct upgrade path** when money moves enters scope is not a language switch — it is adding **targeted micro-services** at the points where TypeScript is genuinely not enough (payment gateway consumer, fraud scoring). The rest of the app stays TypeScript. This avoids a full rewrite while giving you the right tool at the right boundary.
 
@@ -186,17 +186,20 @@ flowchart LR
 ## Consequences
 
 **Positive:**
+
 - The aggregator-first approach (Mono / Okra) means Payday Pitch inherits CBN compliance and bank connectivity without direct bank relationships at launch.
 - The existing RLS + integer-kobo + `authedAction()` triad is the right foundation — no architectural rework needed for read-only sync.
 - Sequencing security hardening with existing slice milestones keeps it from becoming a separate parallel track.
 
 **Negative / tradeoffs:**
+
 - Aggregator APIs (Mono, Okra) add a third-party dependency and a monthly cost that scales with connected accounts.
 - Direct bank integrations (when needed) each require legal agreements and can take months to onboard.
 - PiggyVest / PocketApp integrations may never be technically possible; a referral model is the realistic path.
 - Automated money movement is a fundamentally different product — it requires legal, compliance, and insurance infrastructure before a line of code is written.
 
 **Neutral:**
+
 - The language question (Go / Python) is a future architecture decision, not a present one. It belongs in the spec for whatever feature first requires it.
 
 ---

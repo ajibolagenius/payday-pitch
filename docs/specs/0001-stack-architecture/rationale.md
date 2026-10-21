@@ -60,10 +60,12 @@ Supporting choices follow the same forces: integer kobo with no money library (e
 ## References
 
 **Project sources** (verifiable, in this repo):
+
 - [docs/scope/scope.md](../../scope/scope.md): product intent, features 1, 3, 5, 10, 13, 15, 16, Tracer Bullet approach
 - `supabase` community skill (`~/.claude/skills/supabase/`): RLS, grants, views, `security definer`, key exposure rules
 
 **Practices & standards**:
+
 - Monolith first for small teams
 - Relational database as the default primary store
 - Defense in depth: authorization enforced in the data layer (row level security)
@@ -71,6 +73,7 @@ Supporting choices follow the same forces: integer kobo with no money library (e
 - Network first for pages, cache first for content hashed assets (service worker caching)
 
 **Links** (web verified during the October 2026 landscape check):
+
 - Supabase pricing: https://supabase.com/pricing
 - Neon pricing: https://neon.com/pricing
 - Better Auth: https://better-auth.com/

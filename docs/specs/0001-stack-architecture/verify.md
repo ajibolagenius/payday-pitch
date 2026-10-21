@@ -1,11 +1,14 @@
 # Verify: Stack & architecture · spec 0001 · updated 2026-10-20
+
 _Spec 0001 has no numbered acceptance criteria; these steps come from the scope's "Done when" line and the spec's Offline and Manifest conventions. `/check verify` runs these; `/test` locks the durable ones._
 
 ## Commands
+
 - [x] `nvm use && pnpm install && pnpm typecheck && pnpm build` → all pass; every route builds as static → Done when: passes build
 - [x] `pnpm dev`, then request `/` and `/app` → both return 200 → Done when: boots locally
 
 ## UI / manual
+
 - [x] Open `/` at phone width (Pixel 7 viewport) → no horizontal scroll; headings render in Space Grotesk → Done when: loads well on a phone
 - [x] `pnpm build && pnpm start`; load `/`, reload (now controlled by `/sw.js?v=dev`), go offline, reload `/` → the cached page shows → Offline: navigations network first, cached fallback
 - [x] Still offline, open `/app` with no user known to the worker → the "You are offline" page, nothing cached under `pages-*` → Offline: unknown users cache nothing
@@ -16,6 +19,7 @@ _Spec 0001 has no numbered acceptance criteria; these steps come from the scope'
 - [ ] Install on Android Chrome and Add to Home Screen on iOS Safari → opens `/app` standalone, green placeholder icon, theme color `#1B4638` → Manifest (needs real devices; Playwright proved the manifest fields, standalone config, and that every icon serves as PNG)
 
 ## Acceptance-criteria coverage
+
 - Done when (boots, passes build, loads on a phone): the two command steps and the phone width step
 - Offline conventions: steps 4 to 9 under UI / manual
 - Manifest conventions: the install step
