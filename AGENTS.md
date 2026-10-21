@@ -14,6 +14,14 @@ These govern every change, by any person or agent. They override any skill or to
 
    Approval covers that one commit or PR only, not the ones after it.
 
+## Skills
+
+Mandatory skills for this project. Read a skill's `SKILL.md` before doing any work it covers.
+
+| Skill | Path | When to activate |
+|---|---|---|
+| **secure-me** | `~/.gemini/config/skills/secure-me/SKILL.md` | Any time code is reviewed, audited, or hardened for security; when touching auth, RLS policies, Server Actions, secrets, CSP headers, rate limiting, or any banking/payment integration; when the user mentions OWASP, vulnerability, penetration test, or compliance. Also activate proactively before writing any new code that touches auth, database access, money, or user data. |
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 ## This is NOT the Next.js you know

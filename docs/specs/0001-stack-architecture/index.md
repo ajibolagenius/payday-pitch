@@ -1,7 +1,7 @@
 # 0001. Next.js and Supabase stack for an installable web app
 
 **Date**: 2026-10-20
-**Status**: In Progress
+**Status**: Accepted
 
 ## Summary
 
