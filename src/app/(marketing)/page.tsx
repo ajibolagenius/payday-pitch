@@ -4,7 +4,7 @@ export default function Home() {
     <main className="flex flex-1 flex-col justify-center gap-4 px-4 py-16 max-w-xl mx-auto">
       <h1 className="text-4xl font-bold">Payday Pitch</h1>
       <p className="text-lg">
-        Turn your monthly salary into a football lineup. Coming soon.
+        Build wealth from your salary, payday by payday. Line it up like a football team: bills covered, debts cleared, the rest working for you. Coming soon.
       </p>
     </main>
   );

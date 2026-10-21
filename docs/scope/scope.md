@@ -1,6 +1,6 @@
 # Scope: Payday Pitch
 
-A mobile friendly web app that turns your monthly salary into a football lineup. You pick a formation (4-4-2, 4-3-3, 3-5-2, and more), and each one splits your money differently across goalkeeper (emergency fund), defenders (fixed living costs), midfield (debt, upskilling, short term goals), forwards (wealth building), and bench (guilt free spending). It serves salary earners in Nigeria first, including people with several income streams, and switches tactics as life changes: a "Park the Bus" formation while you clear a debt, an "Attacking 4-3-3" once you are free of it. It plans and tracks only. It never connects to a bank or moves money.
+A mobile friendly web app that turns your monthly salary into a football lineup. You pick a formation (4-4-2, 4-3-3, 3-5-2, and more), and each one splits your money differently across goalkeeper (emergency fund), defenders (fixed living costs), midfield (debt, upskilling, short term goals), forwards (wealth building), and bench (guilt free spending). It serves salary earners in Nigeria first, including people with several income streams, and switches tactics as life changes: a "Park the Bus" formation while you clear a debt, an "Attacking 4-3-3" once you are free of it. The goal is building wealth; the lineup is the method. It plans and tracks only. It never connects to a bank or moves money.
 
 **Build approach:** Tracer Bullet (one thin, real thread through the whole loop first, then each slice thickens one segment end to end).
 **Workflow:** Beta (after `/develop`: `/check verify`, then `/test`). The project default level of rigor. `/architect` is the recommended first stop for a feature with a real decision, but skippable when you already know the build. Any feature can carry its own tag (e.g. `· GA`) to do more or less.
@@ -37,8 +37,8 @@ Decide the stack for a mobile friendly, installable web app and scaffold a runna
 spec [0001](../specs/0001-stack-architecture/index.md) · code in `src/`, `public/sw.js`
 - [x] Decide the stack (spec): `/architect stack & architecture`
 - [x] Scaffold from the decision: `/develop stack & architecture`
-- [ ] Verify it: `/check verify stack & architecture`
-- [ ] Test it: `/test stack & architecture`
+- [x] Verify it: `/check verify stack & architecture`
+- [x] Test it: `/test stack & architecture` (`tests/e2e/`)
 
 ### 2. Coding standards & tooling
 Capture conventions, then install lint, format, and pre commit enforcement from the real scaffolded project.
@@ -46,7 +46,7 @@ Capture conventions, then install lint, format, and pre commit enforcement from 
 - [ ] Capture conventions + tooling choices: `/audit`
 
 ### 3. Data model · needs a decision
-Core entities every slice builds on: users, income streams (amount and payday), formations (the built in list plus custom tactics) and their positions with percentages, monthly matches (what you actually put where), debts, and goals. Money stays exact and carries its currency, so more currencies can come later.
+Core entities every slice builds on: users, income streams (amount and payday), fixed costs (real amounts, not a share of income), formations (the built in list plus custom tactics) and their positions with percentages, monthly matches (what you actually put where), debts, and goals. Money stays exact and carries its currency, so more currencies can come later.
 **Done when:** the entities support every slice through investment guidance (formation switches, debt payoff, season history, reminders) without a breaking migration, and no amount is stored as an approximate number.
 - [ ] Design it (spec): `/architect data model`
 
@@ -65,8 +65,8 @@ Real accounts from day one, so a person's formation and history are private, sav
 - [ ] Design it (spec): `/architect sign in & accounts`
 
 ### 6. First match loop · needs a decision
-The thinnest real thread: add your income streams, pick a formation, and get a split that fits it. Each formation has its own style and money split: 4-4-2 balanced, 4-3-3 attacking (more to investments), 3-5-2 midfield heavy (more to upskilling and goals), 4-2-3-1 steady builder, 5-3-2 defensive (high fixed costs), 5-4-1 Park the Bus (debt first). Then log this month's match (what you actually put in each position) and see it saved. No custom percentages, debts, or reminders yet.
-**Done when:** a signed in user enters one or more incomes, picks any formation from the list, and sees the players arranged in that shape on the pitch with each position's amount in naira and a one line "when to play it"; switching formation updates the split right away; the logged match keeps the formation it was played in and is still there after reloading; empty and error states render.
+The thinnest real thread: add your income streams, pick a formation, and get a split that fits it. Each formation has its own style and money split: 4-4-2 balanced, 4-3-3 attacking (more to investments), 3-5-2 midfield heavy (more to upskilling and goals), 4-2-3-1 steady builder, 5-3-2 defensive (high fixed costs), 5-4-1 Park the Bus (debt first). Defenders are your real fixed costs (rent, food, transport, utilities) entered as amounts; a formation shapes what is left, it never shrinks your rent. Then log this month's match (what you actually put in each position) and see it saved. No custom percentages, debts, or reminders yet.
+**Done when:** a signed in user enters one or more incomes, picks any formation from the list, and sees the players arranged in that shape on the pitch with each position's amount in naira and a one line "when to play it"; switching formation updates the split right away but never drops defense below the fixed costs entered (a formation that cannot cover them says so instead); the logged match keeps the formation it was played in and is still there after reloading; empty and error states render.
 **Candidates to weigh:** Motion layout animations (players slide to new positions on a formation switch) · Driver.js (short first match tour explaining each position)
 - [ ] Design it (spec): `/architect first match loop`
 
@@ -74,14 +74,14 @@ The thinnest real thread: add your income streams, pick a formation, and get a s
 
 ### 7. Tactics board · needs a decision
 Start from any formation and tune it: adjust each position's percentage yourself, save it as your own tactic, and get coaching nudges when the shape gets risky. A suggested formation based on your situation (debt, thin emergency fund, high fixed costs) lives here too.
-**Done when:** a user edits percentages on top of a chosen formation and saves it as a custom tactic; the total always reaches 100% before it saves; a warning shows when defense passes 50% of income or the goalkeeper drops to 0%; the app suggests a formation that fits the user's numbers; the next match uses the new shape.
+**Done when:** a user edits percentages on top of a chosen formation and saves it as a custom tactic; the total always reaches 100% before it saves; a warning shows when defense passes 50% of income or the goalkeeper drops to 0%; once the emergency fund reaches 3 to 6 months of fixed costs, the app suggests moving the goalkeeper's share to the forwards; the app suggests a formation that fits the user's numbers; the next match uses the new shape.
 - [ ] Design it (spec): `/architect tactics board`
 
 ## Slice 3: Debt mode
 
 ### 8. Debt mode (Park the Bus) · needs a decision
 Add a debt with its balance and target date; the app works out the monthly hit, moves you into a defensive formation, tracks each payment, and calls the Final Whistle when it is cleared, then suggests the attacking formation.
-**Done when:** a user adds a debt and sees the monthly amount needed to clear it by the target date; logged payments reduce the balance; clearing it prompts a switch to an attacking formation; more than one debt is handled.
+**Done when:** a user adds a debt and sees the monthly amount needed to clear it by the target date; the plan always budgets at least that full amount (the original chat budgeted 357,500 against 360,000 needed), and when income cannot cover it the app shows the shortfall instead of a plan that quietly falls short; logged payments reduce the balance; clearing it prompts a switch to an attacking formation; more than one debt is handled.
 - [ ] Design it (spec): `/architect debt mode`
 
 ## Slice 4: Season view
@@ -94,14 +94,14 @@ The dashboard: match history month by month, planned versus actual per position,
 ## Slice 5: Matchday rhythm
 
 ### 10. Payday reminders · needs a decision
-Nudges on the real rhythm of your money: a Payday Whistle when each income stream should land, a Match Kickoff to make the split, and a monthly Tactical Review.
-**Done when:** each income stream's payday triggers a reminder, the kickoff and review reminders follow it, users can turn each one off, and nothing fires for a deleted income stream.
+Nudges on the real rhythm of your money: a Payday Whistle when each income stream should land, a Match Kickoff to make the split 1 to 2 days after the last stream of the month lands (not the first), and a monthly Tactical Review.
+**Done when:** each income stream's payday triggers a reminder, including a payday on the 29th to 31st in a shorter month (it lands on the last day); the kickoff follows the last payday and the review follows the kickoff; reminders fire at the stated Lagos time; users can turn each one off, and nothing fires for a deleted income stream.
 **Candidates to weigh:** WhatsApp Cloud API (official, where Nigerians read messages; not OpenWA, which is unofficial and risks number bans) · Telegram bot via telegraf.js (free, official) · react-email (reminder email templates) · Upstash QStash (scheduler fallback if Supabase Cron falls short)
 - [ ] Design it (spec): `/architect payday reminders`
 
 ### 11. Calendar export
 Download your reminder schedule as a calendar file that imports into Google Calendar or Apple Calendar, like the one in the original chat.
-**Done when:** the downloaded file imports cleanly into both calendars with the right recurring dates and descriptions that match the user's real amounts.
+**Done when:** the downloaded file imports cleanly into both calendars with the right recurring dates and descriptions that match the user's real amounts; every reminder from feature 10 is in it; events show at the intended Lagos time (not shifted by an hour); a payday on the 29th to 31st still appears in February, on the last day.
 - [ ] Build it: `/develop calendar export`
 
 ## Slice 6: Forward line

@@ -10,7 +10,7 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: "Payday Pitch",
-  description: "Turn your monthly salary into a football lineup.",
+  description: "Build wealth from your salary, payday by payday. Line it up like a football team: bills covered, debts cleared, the rest working for you.",
 };
 
 export const viewport: Viewport = {
