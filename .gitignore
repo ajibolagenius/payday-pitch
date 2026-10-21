@@ -39,6 +39,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local assets (design screenshots, chat history)
+/docs/assets/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
