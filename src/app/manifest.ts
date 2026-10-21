@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Payday Pitch",
     short_name: "Payday Pitch",
-    description: "Turn your monthly salary into a football lineup.",
+    description: "Build wealth from your salary, payday by payday. Line it up like a football team: bills covered, debts cleared, the rest working for you.",
     start_url: "/app",
     display: "standalone",
     background_color: "#1B4638",

@@ -1,6 +1,6 @@
 # Payday Pitch
 
-A mobile friendly, installable web app that turns a monthly salary into a football formation. Plan: [docs/scope/scope.md](docs/scope/scope.md). Stack and architecture: [docs/specs/0001-stack-architecture/index.md](docs/specs/0001-stack-architecture/index.md).
+A mobile friendly, installable web app that helps salary earners build wealth by lining up each month's pay as a football formation: fixed costs as real amounts, debts fully covered, the rest put to work. Plan: [docs/scope/scope.md](docs/scope/scope.md). Stack and architecture: [docs/specs/0001-stack-architecture/index.md](docs/specs/0001-stack-architecture/index.md).
 
 ## Golden rules
 
