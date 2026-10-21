@@ -21,6 +21,7 @@ Mandatory skills for this project. Read a skill's `SKILL.md` before doing any wo
 | Skill | Path | When to activate |
 |---|---|---|
 | **secure-me** | `~/.gemini/config/skills/secure-me/SKILL.md` | Any time code is reviewed, audited, or hardened for security; when touching auth, RLS policies, Server Actions, secrets, CSP headers, rate limiting, or any banking/payment integration; when the user mentions OWASP, vulnerability, penetration test, or compliance. Also activate proactively before writing any new code that touches auth, database access, money, or user data. |
+| **ponytail** | `~/.gemini/config/plugins/ponytail/skills/ponytail/SKILL.md` | Any coding task: writing, adding, refactoring, fixing, reviewing, or designing code, and choosing libraries or dependencies. Also activate when the user says "ponytail", "be lazy", "lazy mode", "simplest solution", "minimal solution", "yagni", "do less", "shortest path", or complains about over-engineering, bloat, boilerplate, or unnecessary dependencies. Supports intensity levels: `lite` · `full` (default) · `ultra`. |
 
 <!-- BEGIN:nextjs-agent-rules -->
 
