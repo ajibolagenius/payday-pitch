@@ -59,6 +59,10 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      # ESLint cannot see inside className strings (spec 0005 enforcement).
+      - name: No hex colors outside the token layer
+        run: pnpm check:hex
+
       - name: Format check
         run: pnpm format:check
 

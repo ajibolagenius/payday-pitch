@@ -37,6 +37,12 @@ Project local skills in `.claude/skills/`, add a row when you touch their area:
 - [email-best-practices](.claude/skills/email-best-practices/): `resend/email-best-practices`, deliverability rules for auth and reminder emails.
 - [vitest](.claude/skills/vitest/): `antfu/skills`, unit test conventions (tests sit beside source as `*.test.ts`).
 
+Installed elsewhere, load when the area comes up:
+
+- [sharp](.agents/skills/sharp/): `clasen/skills`, image work behind `pnpm icons` (resize, SVG to PNG, composite, metadata).
+- ask-sonner (global, `~/.claude/skills/ask-sonner/`): `emilkowalski/skills`, toast conventions for `sonner` (mount the Toaster once, promise and loading toasts, avoid double toasts and modal z-index clashes).
+- impeccable (global, `~/.agents/skills/impeccable/`): the AI design skill adopted by spec 0005; activate when designing, reshaping, or critiquing any UI surface.
+
 ## Commands
 
 ```bash
@@ -44,7 +50,11 @@ pnpm install
 pnpm dev          # dev server (re-adds the next rules block below; keep it committed)
 pnpm build
 pnpm typecheck    # next typegen && tsc --noEmit
+pnpm test         # Vitest unit tests (tests beside source as *.test.ts)
 pnpm test:e2e     # Playwright, specs in tests/e2e
+pnpm lint         # ESLint, --max-warnings 0
+pnpm check:hex    # no hex color literals outside globals.css and the artwork carve out
+pnpm icons        # regenerate app icons from public/icons/master*.svg (sharp)
 ```
 
 ## Specs
@@ -59,11 +69,15 @@ Architecture specs live in `docs/specs/NNNN-slug/index.md`. The living product p
 - Money is integer minor units (kobo) with an ISO currency code, handled only in `src/domain/money.ts`. No floats. "This month" computes in `Africa/Lagos`, never from the server UTC clock.
 - Every write is a Server Action built with `authedAction()` (Zod validated, returns `ActionResult`, expected failures never throw). Actions never accept a `user_id` from the client.
 - Identify users with `supabase.auth.getClaims()`, never `getSession()`. Every table gets RLS plus explicit grants to `authenticated`, and a Vitest isolation test, in the same PR.
+- No hex color literals outside the raw layer of `src/app/globals.css` and the artwork carve out (`src/components/pitch/**`, `src/components/stickers/**`, `src/lib/brand.ts`). `pnpm check:hex` and the ESLint rule enforce it.
+- Every amount on screen renders through `<MoneyText>` (formats integer kobo via `src/domain/money.ts`). No component formats money by hand.
+- Motion (`motion/react`) is the only animation library. Every animated property is gated by `prefers-reduced-motion` (hook: `src/lib/use-prefers-reduced-motion.ts`).
 - No Vercel only runtime APIs (portability rule, spec 0001).
 
 ## Context files
 
 - Spec 0001 `## Architecture conventions` is the offline and service worker guide for `public/sw.js` (registry at [docs/scope/scope.md](docs/scope/scope.md)).
+- Design system: build all UI to [design.md](design.md) (tokens, type, components, voice); token values live only in `src/app/globals.css`.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

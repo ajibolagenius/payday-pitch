@@ -13,6 +13,16 @@ const ngn = new Intl.NumberFormat("en-NG", {
   minimumFractionDigits: 2,
 })
 
+const ngnPlain = new Intl.NumberFormat("en-NG", {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+})
+
 export function formatKobo(amount: Amount): string {
   return ngn.format(amount.kobo / 100)
+}
+
+// Screen reader form: "45,000 naira", never the raw "₦" glyph.
+export function formatKoboSpoken(amount: Amount): string {
+  return `${ngnPlain.format(Math.round(amount.kobo / 100))} naira`
 }

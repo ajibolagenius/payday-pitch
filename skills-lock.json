@@ -31,6 +31,12 @@
       "skillPath": "skills/resend/SKILL.md",
       "computedHash": "e12ac96a3c05509aabf1b03f40a3112e710e1bda060161b6495f851b7ac18f34"
     },
+    "sharp": {
+      "source": "clasen/skills",
+      "sourceType": "github",
+      "skillPath": "sharp/SKILL.md",
+      "computedHash": "dd99425fe5f89975633f4cd7bf58df3c0903ff8d8cec89dd8f6d3e4e127746bc"
+    },
     "vitest": {
       "source": "antfu/skills",
       "sourceType": "github",

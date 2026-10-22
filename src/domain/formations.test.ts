@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest"
 
-import { FORMATIONS, sumBasisPoints } from "./formations"
+import {
+  FORMATIONS,
+  formationSlotCoordinates,
+  sumBasisPoints,
+} from "./formations"
 
 // The migration seed must pass the database sum trigger on day one (spec 0004 AC-4).
 describe("built-in formations", () => {
@@ -33,4 +37,48 @@ describe("built-in formations", () => {
       }
     },
   )
+})
+
+// The pitch view contract (spec 0005, AC-5): every formation has a slot for
+// each of its 12 positions, placeable without overlap.
+describe("formationSlotCoordinates", () => {
+  it.each(FORMATIONS.map((f) => [f.name] as const))(
+    "%s returns 12 slots in seed order",
+    (name) => {
+      const coords = formationSlotCoordinates(name)
+      expect(coords).toHaveLength(12)
+      expect(coords[0]).toEqual({ x: 50, y: 90 })
+      // The bench slot lives in the strip below the SVG, not on the grass.
+      expect(coords[11]).toEqual({ x: 50, y: 97 })
+    },
+  )
+
+  it.each(FORMATIONS.map((f) => [f.name] as const))(
+    "%s keeps all 11 pitch slots inside the drawable area",
+    (name) => {
+      const pitch = formationSlotCoordinates(name).slice(0, 11)
+      for (const p of pitch) {
+        expect(p.x).toBeGreaterThanOrEqual(5)
+        expect(p.x).toBeLessThanOrEqual(95)
+        expect(p.y).toBeGreaterThanOrEqual(5)
+        expect(p.y).toBeLessThanOrEqual(95)
+      }
+    },
+  )
+
+  it.each(FORMATIONS.map((f) => [f.name] as const))(
+    "%s spaces pitch slots at least 8 percent apart",
+    (name) => {
+      const pitch = formationSlotCoordinates(name).slice(0, 11)
+      for (const [i, p] of pitch.entries()) {
+        for (const q of pitch.slice(i + 1)) {
+          expect(Math.hypot(p.x - q.x, p.y - q.y)).toBeGreaterThanOrEqual(8)
+        }
+      }
+    },
+  )
+
+  it("knows no other formation", () => {
+    expect(formationSlotCoordinates("4-4-2-lie")).toBeUndefined()
+  })
 })

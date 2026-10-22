@@ -1,26 +1,123 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-/* Placeholder tokens; the real palette comes from the design system spec (feature 4). */
+@custom-variant dark (&:is(.dark *));
+
+/* Layer 1: raw brand values, defined once, never consumed by components.
+   Artwork (pitch, stickers) may reference these vars directly. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --pitch-green: #1b4638;
+  --volt: #f5ff6b;
+  --surface-black: #101010;
+  --paper: #fafafa;
+  --ink: #141414;
+  /* Pitch line artwork constant: low alpha on grass in light, higher in dark. */
+  --pitch-line: rgb(255 255 255 / 0.35);
 }
 
+/* Layer 2: semantic tokens (light). Components consume ONLY these,
+   via the mapped utilities (bg-card, text-muted-foreground, ...). */
+:root {
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: #ffffff;
+  --card-foreground: var(--ink);
+  --popover: #ffffff;
+  --popover-foreground: var(--ink);
+  --primary: var(--pitch-green);
+  --primary-foreground: #ffffff;
+  --secondary: #e8efea;
+  --secondary-foreground: var(--pitch-green);
+  --muted: #efefef;
+  --muted-foreground: #525252;
+  /* Volt is fill-only in light: text on accent stays white on pitch green. */
+  --accent: var(--pitch-green);
+  --accent-foreground: #ffffff;
+  --destructive: #c41e2f;
+  --destructive-foreground: #ffffff;
+  --success: #1e7a45;
+  --success-foreground: #ffffff;
+  --border: #e0e0e0;
+  --input: #d4d4d4;
+  --ring: var(--pitch-green);
+  --radius: 0.625rem;
+}
+
+/* Dark swap: every semantic token gets an explicit dark value.
+   This is where volt text is allowed (light inks on near black). */
+.dark {
+  --background: var(--surface-black);
+  --foreground: var(--paper);
+  --card: #1a1a1a;
+  --card-foreground: var(--paper);
+  --popover: #1a1a1a;
+  --popover-foreground: var(--paper);
+  --primary: var(--pitch-green);
+  --primary-foreground: var(--volt);
+  --secondary: #23352c;
+  --secondary-foreground: var(--paper);
+  --muted: #2a2a2a;
+  --muted-foreground: #ababab;
+  --accent: var(--volt);
+  --accent-foreground: var(--surface-black);
+  /* Kept light enough that error text also clears AA on --card and on the
+     bg-destructive/10 and /20 tints shadcn uses, not just on --background. */
+  --destructive: #ff6b6b;
+  --destructive-foreground: var(--surface-black);
+  --success: #4cc77f;
+  --success-foreground: var(--surface-black);
+  --border: #2a2a2a;
+  --input: #3a3a3a;
+  --ring: var(--volt);
+  --pitch-line: rgb(255 255 255 / 0.6);
+}
+
+/* Tailwind v4 maps these to utilities (bg-background, text-card-foreground...).
+   The contrast test in src/lib/tokens.test.ts parses this block by name. */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
   --font-sans: var(--font-space-grotesk);
+  --font-heading: var(--font-space-grotesk);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), sans-serif;
+/* Columns of figures align: apply to any rendered amount (MoneyText). */
+.money {
+  font-variant-numeric: tabular-nums;
 }

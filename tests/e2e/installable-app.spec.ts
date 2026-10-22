@@ -177,6 +177,15 @@ test.describe("offline", () => {
   })
 })
 
+test.describe("design system demo", () => {
+  // Spec 0005: the page proves the system in dev and never ships.
+  test("/design-system is not served from a production build", async ({
+    request,
+  }) => {
+    expect((await request.get("/design-system")).status()).toBe(404)
+  })
+})
+
 test.describe("new version", () => {
   // A real deploy changes the commit SHA in /sw.js?v=. Registering a new URL
   // from the page takes the same update path without a second build.
