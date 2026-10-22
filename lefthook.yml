@@ -8,4 +8,4 @@ pre-commit:
     lint:
       glob: "*.{ts,tsx,js,mjs}"
       stage_fixed: true
-      run: pnpm exec eslint --fix --max-warnings 0 {staged_files}
+      run: pnpm exec eslint --fix --max-warnings 0 --no-warn-ignored {staged_files}

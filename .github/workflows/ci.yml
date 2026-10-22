@@ -9,6 +9,38 @@ permissions:
   contents: read
 
 jobs:
+  database:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Installs the CLI. The action only sets up the binary, so the next
+      # step starts the stack, which applies every migration in
+      # supabase/migrations on boot.
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.113.0
+
+      - name: Start Supabase
+        run: supabase start
+
+      - name: Schema drift check (spec 0004, AC-1)
+        run: pnpm db:drift
+
+      - name: RLS isolation and constraint tests
+        run: pnpm test:db
+
   quality:
     runs-on: ubuntu-latest
     steps:

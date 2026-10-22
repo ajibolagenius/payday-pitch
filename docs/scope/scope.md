@@ -13,7 +13,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | --- | ------------------------------------ | ---------- | ----------- |
 | 1   | Stack & architecture                 | Foundation | done        |
 | 2   | Coding standards & tooling           | Foundation | in-progress |
-| 3   | Data model                           | Foundation | planned     |
+| 3   | Data model                           | Foundation | in-progress |
 | 4   | Design system & UI foundation        | Foundation | planned     |
 | 5   | Sign in & accounts                   | Slice 1    | planned     |
 | 6   | First match loop                     | Slice 1    | planned     |
@@ -53,16 +53,25 @@ spec [0003](../specs/0003-coding-standards-tooling/index.md) · code in `eslint.
 - [ ] Verify it: `/check verify coding standards & tooling` (AC-1 to AC-10)
 - [x] Test it: `/test coding standards & tooling`
 
-### 3. Data model · needs a decision
+### 3. Data model
 
 Core entities every slice builds on: users, income streams (amount and payday), fixed costs (real amounts, not a share of income), formations (the built in list plus custom tactics) and their positions with percentages, monthly matches (what you actually put where), debts, and goals. Money stays exact and carries its currency, so more currencies can come later.
 **Done when:** the entities support every slice through investment guidance (formation switches, debt payoff, season history, reminders) without a breaking migration, and no amount is stored as an approximate number.
+spec [0004](../specs/0004-data-model.md) · code in `supabase/migrations/`, `src/domain/`, `src/features/profile/`, `src/lib/supabase/`
 
-- [ ] Design it (spec): `/architect data model`
+- [x] Design it (spec): `/architect data model`
+- [x] Build it: `/develop data model`
+  - [x] One migration: eleven tables, constraints, indexes, grants, RLS policies (AC-1 to AC-3, AC-6 structure)
+  - [x] Triggers in `private` plus the six formation seeds from `src/domain/formations.ts` (AC-4, AC-5)
+  - [x] Progress views and the profile upsert helper (AC-8, AC-10)
+  - [x] Local Supabase run, generated types, CI drift check (AC-1)
+  - [x] Vitest isolation tests per table and constraint probes (AC-3, AC-7, AC-9)
+- [ ] Verify it: `/check verify data model` (AC-1 to AC-10)
+- [x] Test it: `/test data model`
 
 ### 4. Design system & UI foundation · needs a decision
 
-The visual language from the references in `~/Downloads/assets/`: pitch green `#1B4638`, electric yellow `#F5FF6B`, near black surfaces, Space Grotesk, analytics style stat tiles and radar charts (UI_2), and the hand drawn football sticker style (DES_1 to DES_3). Includes the pitch view component every money screen uses.
+The visual language from the references in `~/docs/assets`: pitch green `#1B4638`, electric yellow `#F5FF6B`, near black surfaces, Space Grotesk, analytics style stat tiles and radar charts (UI_2), and the hand drawn football sticker style (DES_1 to DES_3). Includes the pitch view component every money screen uses.
 **Done when:** `design.md` covers type, color, spacing, and components; every color pair passes WCAG AA contrast (yellow text on light surfaces needs checking); base components handle focus, keyboard, and screen readers; the pitch view shows a formation with amounts.
 **Candidates to weigh:** Motion (animation library for the whole app) · DiceBear (generated player avatars in the sticker style) · Impeccable or Taste Skill (AI design skill, pick one) · sharp (one off script to generate manifest icons)
 
