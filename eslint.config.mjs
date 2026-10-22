@@ -18,6 +18,7 @@ const config = [
       ".claude/**",
       "next-env.d.ts",
       "src/lib/supabase/database.types.ts",
+      "supabase/.temp/**",
     ],
   },
   js.configs.recommended,

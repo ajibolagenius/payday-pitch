@@ -1,0 +1,2 @@
+-- Local seed data (spec 0001 layout). The six built-in formations are seeded
+-- by the data model migration itself; this file stays for local dev fixtures.

@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "next typegen && tsc --noEmit",
+    "db:types": "supabase gen types typescript --local --schema public > src/lib/supabase/database.types.ts",
+    "db:drift": "supabase gen types typescript --local --schema public > /tmp/database.types.ts && diff /tmp/database.types.ts src/lib/supabase/database.types.ts",
     "test": "vitest run",
+    "test:db": "TEST_SUPABASE=1 vitest run src/lib/supabase/rls.test.ts",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "lint": "eslint . --max-warnings 0",
@@ -16,6 +19,7 @@
     "prepare": "lefthook install"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
     "next": "16.4.2",
     "react": "19.3.0",
     "react-dom": "19.3.0"
