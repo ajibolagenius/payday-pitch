@@ -14,7 +14,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 1   | Stack & architecture                 | Foundation | done        |
 | 2   | Coding standards & tooling           | Foundation | in-progress |
 | 3   | Data model                           | Foundation | in-progress |
-| 4   | Design system & UI foundation        | Foundation | planned     |
+| 4   | Design system & UI foundation        | Foundation | in-progress |
 | 5   | Sign in & accounts                   | Slice 1    | planned     |
 | 6   | First match loop                     | Slice 1    | planned     |
 | 7   | Tactics board                        | Slice 2    | planned     |
@@ -69,13 +69,21 @@ spec [0004](../specs/0004-data-model.md) · code in `supabase/migrations/`, `src
 - [ ] Verify it: `/check verify data model` (AC-1 to AC-10)
 - [x] Test it: `/test data model`
 
-### 4. Design system & UI foundation · needs a decision
+### 4. Design system & UI foundation
 
 The visual language from the references in `~/docs/assets`: pitch green `#1B4638`, electric yellow `#F5FF6B`, near black surfaces, Space Grotesk, analytics style stat tiles and radar charts (UI_2), and the hand drawn football sticker style (DES_1 to DES_3). Includes the pitch view component every money screen uses.
 **Done when:** `design.md` covers type, color, spacing, and components; every color pair passes WCAG AA contrast (yellow text on light surfaces needs checking); base components handle focus, keyboard, and screen readers; the pitch view shows a formation with amounts.
-**Candidates to weigh:** Motion (animation library for the whole app) · DiceBear (generated player avatars in the sticker style) · Impeccable or Taste Skill (AI design skill, pick one) · sharp (one off script to generate manifest icons)
+**Candidates to weigh:** Motion (animation library for the whole app) · DiceBear (generated player avatars in the sticker style) · Impeccable or Taste Skill (AI design skill, pick one) · sharp (one off script to generate manifest icons). Decided in spec 0005: Motion adopted, DiceBear declined, impeccable adopted, sharp adopted.
 
-- [ ] Design it (spec): `/architect design system & UI foundation`
+- [x] Design it (spec): `/architect design system & UI foundation`
+- [x] Build it: `/develop design system & UI foundation` (spec [0005](../specs/0005-design-system-ui-foundation.md))
+  - [x] Tokens, theming, shadcn base (AC-2, AC-7): spike, two layer token layer, dark default, type scale, ThemeToggle
+  - [x] Starter component kit (AC-1, AC-2, AC-4): restyled primitives, MoneyText, StatTile
+  - [x] Visual assets (AC-8): sticker set, RuneIcons vendoring, master SVG icons with the sharp generator
+  - [x] Pitch view (AC-5, AC-6): slot coordinates in the domain, SVG field, bench strip, Motion layout transitions
+  - [x] Demo route and contrast gates (AC-1, AC-3, AC-4): dev only page, token pair test, axe, keyboard and reduced motion checks, design.md
+- [ ] Verify it: `/check verify design system & UI foundation` (AC-1 to AC-8)
+- [x] Test it: `/test design system & UI foundation`
 
 ## Slice 1: First match (the core loop, also the walking skeleton)
 
