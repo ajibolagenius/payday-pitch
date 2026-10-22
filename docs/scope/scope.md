@@ -15,7 +15,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 2   | Coding standards & tooling           | Foundation | in-progress |
 | 3   | Data model                           | Foundation | in-progress |
 | 4   | Design system & UI foundation        | Foundation | in-progress |
-| 5   | Sign in & accounts                   | Slice 1    | planned     |
+| 5   | Sign in & accounts                   | Slice 1    | in-progress |
 | 6   | First match loop                     | Slice 1    | planned     |
 | 7   | Tactics board                        | Slice 2    | planned     |
 | 8   | Debt mode (Park the Bus)             | Slice 3    | planned     |
@@ -87,13 +87,24 @@ The visual language from the references in `~/docs/assets`: pitch green `#1B4638
 
 ## Slice 1: First match (the core loop, also the walking skeleton)
 
-### 5. Sign in & accounts · needs a decision · GA
+### 5. Sign in & accounts · GA
 
 Real accounts from day one, so a person's formation and history are private, saved, and follow them across devices.
 **Done when:** a user can sign up, sign in, sign out, and recover access; nobody can read another user's financial data; sessions survive a phone browser restart.
-**Candidates to weigh:** react-email (sign up and recovery email templates, rendered to HTML for Supabase Auth)
+spec [0006](../specs/0006-sign-in-and-accounts.md)
+**Candidates to weigh:** react-email (sign up and recovery email templates, rendered to HTML for Supabase Auth). Decided in spec 0006: react-email adopted, Supabase MCP and Resend MCP connected by hand.
 
-- [ ] Design it (spec): `/architect sign in & accounts`
+- [x] Design it (spec): `/architect sign in & accounts`
+- [x] Build it: `/develop sign in & accounts` (spec 0006)
+  - [x] Cookie clients, env, form schemas, redirect validator (AC-2, AC-7, AC-9)
+  - [x] Proxy gate and `(app)` layout guard with lazy profile creation (AC-2, AC-8)
+  - [x] Five auth screens with their Server Actions, callback route, reset password, logout cache clear (AC-1, AC-3, AC-4, AC-5, AC-9, AC-11, AC-12)
+  - [x] Local auth config flip, confirmed test users, react-email templates (AC-1, AC-3, AC-6, AC-10)
+  - [x] Playwright auth suite and unit tests for the validator and schemas (AC-1 to AC-12)
+- [ ] Verify it: `/check verify sign in & accounts` (AC-1 to AC-12)
+- [x] Test it: `/test sign in & accounts`
+- [x] Review it (fresh model): `/check review sign in & accounts`
+- [x] Document it: `/document sign in & accounts`
 
 ### 6. First match loop · needs a decision
 

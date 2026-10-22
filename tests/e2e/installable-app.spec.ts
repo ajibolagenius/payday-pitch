@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test"
+import { expect, test, type BrowserContext, type Page } from "@playwright/test"
 
 // Spec 0001: phone layout, manifest, and the service worker's offline rules.
 // Page copy is placeholder until features 5 and 16, so offline checks compare
@@ -13,6 +13,25 @@ const tell = (page: Page, message: { type: string; id?: string }) =>
     message,
   )
 const heading = (page: Page) => page.getByRole("heading", { level: 1 })
+
+// /app is behind the session guard as of spec 0006, so an anonymous navigation
+// there redirects, and a redirect is never cached. These tests are about the
+// worker's per-user cache rules, so the signed-in page is answered here instead.
+// Callers must drop the fake before going offline: the offline read is only
+// meaningful when the real network fails and the worker falls back to its cache.
+const APP_HTML =
+  '<!DOCTYPE html><html lang="en"><body><h1>Your pitch (cached)</h1></body></html>'
+
+async function fakeAppPage(context: BrowserContext) {
+  // Context level: the worker issues the navigation fetch, not the page.
+  await context.route("**/app", (route) =>
+    route.fulfill({ contentType: "text/html", body: APP_HTML }),
+  )
+}
+
+async function realAppPage(context: BrowserContext) {
+  await context.unroute("**/app")
+}
 
 declare global {
   interface Window {
@@ -126,7 +145,9 @@ test.describe("offline", () => {
     context,
   }) => {
     await controlled(page)
+    await fakeAppPage(context)
     await page.goto("/app")
+    await realAppPage(context)
     await context.setOffline(true)
     await page.goto("/app")
     await expect(heading(page)).toHaveText("You are offline")
@@ -138,6 +159,7 @@ test.describe("offline", () => {
     context,
   }) => {
     await controlled(page)
+    await fakeAppPage(context)
     await tell(page, { type: "user", id: "a" })
     await page.goto("/app")
     const online = await heading(page).textContent()
@@ -145,6 +167,7 @@ test.describe("offline", () => {
       .poll(() => pageCaches(page))
       .toEqual([expect.stringMatching(/^pages-.+-a$/)])
 
+    await realAppPage(context)
     await context.setOffline(true)
     await page.goto("/app")
     await expect(heading(page)).toHaveText(online!)
@@ -155,19 +178,22 @@ test.describe("offline", () => {
     context,
   }) => {
     await controlled(page)
+    await fakeAppPage(context)
     await tell(page, { type: "user", id: "a" })
     await page.goto("/app")
     await expect.poll(() => pageCaches(page)).toHaveLength(1)
 
     await tell(page, { type: "user", id: "b" })
     await expect.poll(() => pageCaches(page)).toEqual([])
+    await realAppPage(context)
     await context.setOffline(true)
     await page.goto("/app")
     await expect(heading(page)).toHaveText("You are offline")
   })
 
-  test("sign out clears every pages cache", async ({ page }) => {
+  test("sign out clears every pages cache", async ({ context, page }) => {
     await controlled(page)
+    await fakeAppPage(context)
     await tell(page, { type: "user", id: "a" })
     await page.goto("/app")
     await expect.poll(() => pageCaches(page)).toHaveLength(1)
