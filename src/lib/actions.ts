@@ -1,9 +1,9 @@
 // Server Action framework (spec 0001 Writes convention). A "use server" file
 // may only export async functions, so these are plain server-side helpers:
 // the ActionResult shape for expected failures, the Zod parse for form
-// payloads (parsePayload), and the claims guard (requireClaims). Action
-// modules compose them into exported async functions. Nothing here throws on
-// an expected failure; it returns one.
+// payloads (parsePayload), the claims guard (requireClaims), and the composed
+// write path (authedAction). Action modules compose them into exported async
+// functions. Nothing here throws on an expected failure; it returns one.
 import { z } from "zod"
 
 import { createSupabaseActionClient } from "@/lib/supabase/server"
@@ -86,4 +86,48 @@ export async function requireClaims(): Promise<{
   const userId = (await client.auth.getClaims()).data?.claims?.sub
   if (!userId) return null
   return { userId, client }
+}
+
+// The one write path (spec 0001, spec 0007 AC-9): every authenticated Server
+// Action is authedAction(schema, handler). Payload validated with Zod, identity
+// from claims only, expected failures returned as codes and never thrown. The
+// handler returns the ActionResult directly (actionOk or actionError); an
+// exception escaping it, the unmapped case, answers "unexpected" after a
+// server-side log, so a raw database error never reaches a user.
+export function authedAction<In, Out = null>(
+  schema: z.ZodType<In>,
+  handler: (ctx: {
+    userId: string
+    client: ActionClient
+    input: In
+  }) => Promise<ActionResult<Out>>,
+): (
+  payload?: FormData | Record<string, unknown>,
+) => Promise<ActionResult<Out>> {
+  return async (payload) => {
+    const parsed = await parsePayload(schema, payload)
+    if (!parsed.ok) {
+      return {
+        ok: false,
+        error: { ...parsed.result.error, code: "validation" },
+      }
+    }
+    const auth = await requireClaims()
+    if (!auth) {
+      return actionError(
+        "session_expired",
+        "You are signed out. Sign in again.",
+      )
+    }
+    try {
+      return await handler({
+        userId: auth.userId,
+        client: auth.client,
+        input: parsed.input,
+      })
+    } catch (cause) {
+      console.error("[action] unexpected failure", cause)
+      return actionError("unexpected", "Something went wrong. Try again.")
+    }
+  }
 }

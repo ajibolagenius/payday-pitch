@@ -16,7 +16,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 3   | Data model                           | Foundation | in-progress |
 | 4   | Design system & UI foundation        | Foundation | in-progress |
 | 5   | Sign in & accounts                   | Slice 1    | in-progress |
-| 6   | First match loop                     | Slice 1    | planned     |
+| 6   | First match loop                     | Slice 1    | in-progress |
 | 7   | Tactics board                        | Slice 2    | planned     |
 | 8   | Debt mode (Park the Bus)             | Slice 3    | planned     |
 | 9   | Season view                          | Slice 4    | planned     |
@@ -106,13 +106,22 @@ spec [0006](../specs/0006-sign-in-and-accounts.md)
 - [x] Review it (fresh model): `/check review sign in & accounts`
 - [x] Document it: `/document sign in & accounts`
 
-### 6. First match loop · needs a decision
+### 6. First match loop
 
 The thinnest real thread: add your income streams, pick a formation, and get a split that fits it. Each formation has its own style and money split: 4-4-2 balanced, 4-3-3 attacking (more to investments), 3-5-2 midfield heavy (more to upskilling and goals), 4-2-3-1 steady builder, 5-3-2 defensive (high fixed costs), 5-4-1 Park the Bus (debt first). Defenders are your real fixed costs (rent, food, transport, utilities) entered as amounts; a formation shapes what is left, it never shrinks your rent. Then log this month's match (what you actually put in each position) and see it saved. No custom percentages, debts, or reminders yet.
 **Done when:** a signed in user enters one or more incomes, picks any formation from the list, and sees the players arranged in that shape on the pitch with each position's amount in naira and a one line "when to play it"; switching formation updates the split right away but never drops defense below the fixed costs entered (a formation that cannot cover them says so instead); the logged match keeps the formation it was played in and is still there after reloading; empty and error states render.
-**Candidates to weigh:** Motion layout animations (players slide to new positions on a formation switch) · Driver.js (short first match tour explaining each position)
+**Candidates to weigh:** Motion layout animations (players slide to new positions on a formation switch) · Driver.js (short first match tour explaining each position). Decided in spec 0007: Motion already ships in the pitch view, Driver.js adopted for a one time tour on the pitch step.
+spec [0007](../specs/0007-first-match-loop.md) · code in `src/domain/`, `src/features/`, `src/components/walk/`, `src/lib/actions.ts`, `supabase/migrations/`, `tests/e2e/walk.spec.ts`
 
-- [ ] Design it (spec): `/architect first match loop`
+- [x] Design it (spec): `/architect first match loop`
+- [x] Build it: `/develop first match loop` (spec 0007)
+  - [x] Domain: split engine with tie break, naira parsing, Lagos dates, stale comment fix (AC-2, AC-4, AC-5, AC-6 maths)
+  - [x] Write path: `authedAction()` helper, income and cost CRUD actions (AC-1, AC-2, AC-9)
+  - [x] Database: `play_match` function migration, atomic play and correction, isolation tests (AC-5, AC-6)
+  - [x] Walk screens: four steps, formation picker with live preview and unable to cover states, pitch review, returning user states (AC-1, AC-3, AC-5, AC-8, AC-10)
+  - [x] Tour and proofs: Driver.js one time pitch tour, Playwright loop tests, a11y pass (AC-7, AC-10)
+- [x] Verify it: `/check verify first match loop` (AC-1 to AC-10)
+- [x] Test it: `/test first match loop`
 
 ## Slice 2: Tactics
 

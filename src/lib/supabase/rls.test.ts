@@ -14,6 +14,8 @@ import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 
 import { ensureProfile } from "@/features/profile/profile"
+import { currentLagosPeriod } from "@/domain/dates"
+import { splitMatch, type SplitPosition } from "@/domain/money"
 import type { Database } from "@/lib/supabase/database.types"
 
 const runCommand = promisify(execFile)
@@ -751,6 +753,461 @@ describe.skipIf(!enabled)("profile upsert (AC-10)", { timeout: 60_000 }, () => {
     expect(count).toBe(1)
   })
 })
+
+describe.skipIf(!enabled)(
+  "play_match (spec 0007: AC-5, AC-6, AC-9)",
+  { timeout: 60_000 },
+  () => {
+    type PlayResult = {
+      code: string
+      match_id?: number
+      period?: string
+      shortfall_minor?: number
+      message?: string
+    }
+    type PayloadLine = {
+      role: string
+      spot_index: number
+      label: string
+      basis_points: number
+      planned_minor: number
+      actual_minor: number | null
+      currency: string
+    }
+
+    // Each test plays as its own account: the one active match index is per
+    // user and period, so a fresh user is what keeps the current month clear.
+    const players: string[] = []
+
+    async function player(
+      incomes: number[],
+      costs: number[],
+      costCurrency = "NGN",
+    ) {
+      const [id, client] = await makeUser(
+        `play-${run}-${players.length}@test.local`,
+      )
+      players.push(id)
+      const { error: incomeErr } = await client.from("income_stream").insert(
+        incomes.map((amount, index) => ({
+          user_id: id,
+          name: `Stream ${index + 1}`,
+          amount_minor: amount,
+          currency: "NGN",
+          payday_day: 25,
+        })),
+      )
+      if (incomeErr) throw new Error(`seed incomes: ${incomeErr.message}`)
+      const { error: costErr } = await client.from("fixed_cost").insert(
+        costs.map((amount, index) => ({
+          user_id: id,
+          name: `Cost ${index + 1}`,
+          amount_minor: amount,
+          currency: costCurrency,
+        })),
+      )
+      if (costErr) throw new Error(`seed costs: ${costErr.message}`)
+      return { id, client }
+    }
+
+    async function spotsOf(shape: string): Promise<SplitPosition[]> {
+      const rows = await positionsOf(await shapeId(shape))
+      return rows.map((r) => ({
+        role: r.role as SplitPosition["role"],
+        spotIndex: r.spot_index,
+        label: r.label,
+        basisPoints: r.basis_points,
+      }))
+    }
+
+    /** The payload a Server Action builds: the domain split, twelve lines. */
+    function payloadLines(
+      spots: SplitPosition[],
+      income: number,
+      costs: number,
+      actuals: Record<number, number> = {},
+    ): PayloadLine[] {
+      return splitMatch(spots, income, costs).lines.map((l) => ({
+        role: l.role,
+        spot_index: l.spotIndex,
+        label: l.label,
+        basis_points: l.basisPoints,
+        planned_minor: l.plannedKobo,
+        actual_minor: actuals[l.spotIndex] ?? null,
+        currency: "NGN",
+      }))
+    }
+
+    async function play(
+      client: Client,
+      shape: string,
+      income: number,
+      costs: number,
+      actuals?: Record<number, number>,
+    ): Promise<PlayResult> {
+      const lines = payloadLines(await spotsOf(shape), income, costs, actuals)
+      return call(client, shape, lines)
+    }
+
+    async function call(
+      client: Client,
+      shape: string,
+      lines: PayloadLine[],
+      shapeIdOverride?: number,
+    ): Promise<PlayResult> {
+      const { data, error } = await client.rpc("play_match", {
+        p_shape_id: shapeIdOverride ?? (await shapeId(shape)),
+        p_lines: lines,
+      })
+      if (error) {
+        // The one raw failure this function lets through: a concurrent play
+        // losing the one active match index. The action maps 23505 to
+        // conflict (spec 0007), so the test harness answers the same way.
+        if (error.code === "23505") return { code: "conflict" }
+        throw new Error(`rpc failed: ${error.code} ${error.message}`)
+      }
+      return data as unknown as PlayResult
+    }
+
+    afterAll(async () => {
+      for (const id of players) await svc.auth.admin.deleteUser(id)
+    })
+
+    const INCOME = 50_000_000 // ₦500,000
+    const COSTS = 15_000_000 // ₦150,000
+
+    test("one call writes the match and twelve frozen lines, and only its owner reads them (AC-6, AC-3)", async () => {
+      const { id, client } = await player(
+        [30_000_000, 20_000_000],
+        [10_000_000, 5_000_000],
+      )
+      const result = await play(client, "4-4-2", INCOME, COSTS, {
+        0: 1_000_000,
+        5: 3_000_000,
+      })
+      expect(result.code).toBe("ok")
+      // The period is the function's own, and it matches the domain's Lagos rule.
+      expect(result.period).toBe(currentLagosPeriod())
+
+      const { data: match } = await client
+        .from("match")
+        .select("*")
+        .eq("id", result.match_id!)
+        .single()
+      expect(match).toMatchObject({
+        user_id: id,
+        period: currentLagosPeriod(),
+        status: "active",
+        source_kind: "library",
+        currency: "NGN",
+        shape_name: "4-4-2",
+        library_name: "4-4-2",
+      })
+      expect(match?.library_id).toBe(await shapeId("4-4-2"))
+      expect(match?.tactic_id).toBeNull()
+
+      const { data: lines } = await client
+        .from("match_line")
+        .select("*")
+        .eq("match_id", result.match_id!)
+        .order("spot_index")
+      expect(lines).toHaveLength(12)
+      expect(lines?.reduce((s, l) => s + Number(l.basis_points), 0)).toBe(10000)
+      expect(lines?.reduce((s, l) => s + Number(l.planned_minor), 0)).toBe(
+        INCOME,
+      )
+      expect(
+        lines
+          ?.filter((l) => l.role === "DEF")
+          .reduce((s, l) => s + Number(l.planned_minor), 0),
+      ).toBe(COSTS)
+      // The snapshot copies the library, it does not read through to it.
+      expect(lines?.[0]).toMatchObject({
+        role: "GK",
+        label: "Emergency Fund",
+        actual_minor: 1_000_000,
+      })
+      expect(lines?.find((l) => l.spot_index === 3)?.actual_minor).toBeNull()
+
+      // A security definer function must not widen anyone's reach: another
+      // signed in user reads none of this.
+      expect(
+        (await b.from("match").select().eq("id", result.match_id!)).data,
+      ).toEqual([])
+      expect(
+        (await b.from("match_line").select().eq("match_id", result.match_id!))
+          .data,
+      ).toEqual([])
+    })
+
+    test("the function writes only its caller's rows (AC-9)", async () => {
+      const { client: first } = await player([INCOME], [COSTS])
+      const mine = await play(first, "4-3-3", INCOME, COSTS)
+      expect(mine.code).toBe("ok")
+
+      const { id: secondId, client: second } = await player([INCOME], [COSTS])
+      const theirs = await play(second, "5-3-2", INCOME, COSTS)
+      expect(theirs.code).toBe("ok")
+
+      // Each caller sees exactly one match, their own, whatever the other did.
+      const { data: firstRows } = await second.from("match").select("user_id")
+      expect(firstRows).toEqual([{ user_id: secondId }])
+      const { data: theirLines } = await second
+        .from("match_line")
+        .select("match_id")
+      const theirIds = new Set(theirLines?.map((l) => l.match_id))
+      expect(theirIds.size).toBe(1)
+      const { data: theirMatch } = await second
+        .from("match")
+        .select("id, shape_name")
+        .single()
+      expect(theirMatch?.id).toBe(theirs.match_id)
+      expect(theirMatch?.shape_name).toBe("5-3-2")
+    })
+
+    test("a bad shape id is a code, and nothing is written (AC-9)", async () => {
+      const { client } = await player([INCOME], [COSTS])
+      const spots = await spotsOf("4-4-2")
+      const result = await call(
+        client,
+        "4-4-2",
+        payloadLines(spots, INCOME, COSTS),
+        999_999,
+      )
+      expect(result.code).toBe("shape_not_found")
+      const { count } = await client
+        .from("match")
+        .select("id", { count: "exact", head: true })
+      expect(count).toBe(0)
+    })
+
+    test("an anonymous caller cannot execute it (AC-9 security model)", async () => {
+      const anon = createClient<Database>(url, anonKey, {
+        auth: { persistSession: false },
+      })
+      const { error } = await anon.rpc("play_match", {
+        p_shape_id: await shapeId("4-4-2"),
+        p_lines: [],
+      })
+      expect(error).not.toBeNull()
+      const probe = await dbQuery(
+        "select concat_ws(',', " +
+          "case when has_function_privilege('authenticated', 'public.play_match(bigint, jsonb)', 'execute') then '1' else '0' end, " +
+          "case when has_function_privilege('anon', 'public.play_match(bigint, jsonb)', 'execute') then '1' else '0' end, " +
+          "case when has_function_privilege('public', 'public.play_match(bigint, jsonb)', 'execute') then '1' else '0' end)",
+      )
+      // authenticated yes, anon and the PUBLIC pseudo role no.
+      expect(probe.replace(/\D/g, "")).toMatch(/100/)
+    })
+
+    test("a cost in another currency refuses the month (AC-9 mixed_currency)", async () => {
+      const { client } = await player([INCOME], [5_000_000], "USD")
+      const result = await play(client, "4-4-2", INCOME, 5_000_000)
+      expect(result.code).toBe("mixed_currency")
+    })
+
+    test("an account with no income is told so (AC-9 no_income)", async () => {
+      const [id, client] = await makeUser(`play-empty-${run}@test.local`)
+      players.push(id)
+      const result = await play(client, "4-4-2", 0, 0)
+      expect(result.code).toBe("no_income")
+    })
+
+    test("defense over the zone floor refuses with the shortfall (AC-5)", async () => {
+      const { client } = await player([INCOME], [25_000_000])
+      const spots = await spotsOf("4-4-2")
+      // The domain already reports the gap and gives no lines, so the payload
+      // here is hand built: a legal shape that funds defense past its floor.
+      // That is the direct call the function must still refuse.
+      const def = spots.filter((s) => s.role === "DEF")
+      const rest = spots.filter((s) => s.role !== "DEF")
+      const lump = (list: SplitPosition[], pool: number) =>
+        list.map((s, i) => ({
+          role: s.role,
+          spot_index: s.spotIndex,
+          label: s.label,
+          basis_points: s.basisPoints,
+          planned_minor: i === 0 ? pool : 0,
+          actual_minor: null,
+          currency: "NGN",
+        }))
+      const result = await call(client, "4-4-2", [
+        ...lump(def, 25_000_000),
+        ...lump(rest, INCOME - 25_000_000),
+      ])
+      const shortfall = splitMatch(spots, INCOME, 25_000_000).shortfallKobo
+      expect(result.code).toBe("unable_to_cover")
+      // Domain and database agree on the gap, kobo for kobo.
+      expect(Number(result.shortfall_minor)).toBe(shortfall)
+      const { count } = await client
+        .from("match")
+        .select("id", { count: "exact", head: true })
+      expect(count).toBe(0)
+    })
+
+    test("numbers that moved since the preview are refused, with nothing written (AC-4, AC-9)", async () => {
+      const { client } = await player([INCOME], [COSTS])
+      const stale = payloadLines(await spotsOf("4-4-2"), INCOME, COSTS)
+      const { error: editErr } = await client
+        .from("fixed_cost")
+        .update({ amount_minor: 20_000_000 })
+        .eq("name", "Cost 1")
+      expect(editErr).toBeNull()
+      const result = await call(client, "4-4-2", stale)
+      expect(result.code).toBe("validation")
+      expect(result.message).toMatch(/reload/i)
+      const { count } = await client
+        .from("match")
+        .select("id", { count: "exact", head: true })
+      expect(count).toBe(0)
+    })
+
+    test("a foreign line in the payload is refused by shape agreement (AC-4 rule)", async () => {
+      const { client } = await player([INCOME], [COSTS])
+      const lines = payloadLines(await spotsOf("4-4-2"), INCOME, COSTS)
+      const tampered = lines.map((l) =>
+        l.spot_index === 0 ? { ...l, basis_points: l.basis_points + 1 } : l,
+      )
+      const result = await call(client, "4-4-2", tampered)
+      expect(result.code).toBe("validation")
+
+      // A keeper's spot cannot be filed as a defender either: role is checked
+      // against the library row, not only through the zone sums.
+      const relabelled = lines.map((l) =>
+        l.spot_index === 0 ? { ...l, role: "DEF" as const } : l,
+      )
+      expect((await call(client, "4-4-2", relabelled)).code).toBe("validation")
+    })
+
+    test("replaying the month supersedes: entered actuals win, gaps carry to their slot key (AC-6)", async () => {
+      const { client } = await player([INCOME], [COSTS])
+      const period = currentLagosPeriod()
+      const first = await play(client, "4-4-2", INCOME, COSTS, {
+        0: 1_000_000,
+        1: 2_000_000,
+        3: 4_000_000,
+        5: 3_000_000,
+      })
+      expect(first.code).toBe("ok")
+
+      // Fresh entries on the replay: over a carried value (GK), over a zero
+      // that must count as entered (MID spot 6), and over a gap (FWD spot 8).
+      const enteredAgain: Record<number, number> = {
+        0: 9_000_000,
+        6: 0,
+        8: 7_000_000,
+      }
+      const second = await play(client, "4-3-3", INCOME, COSTS, enteredAgain)
+      expect(second.code).toBe("ok")
+      expect(second.match_id).not.toBe(first.match_id)
+
+      const { data: rows } = await client
+        .from("match")
+        .select("id, status")
+        .eq("period", period)
+      expect(rows?.filter((m) => m.status === "active")).toHaveLength(1)
+      expect(rows?.find((m) => m.id === first.match_id)?.status).toBe(
+        "superseded",
+      )
+      expect(rows).toHaveLength(2)
+
+      const orderedByRole = (
+        list: {
+          role: string
+          spot_index: number
+          actual_minor: number | null
+        }[],
+      ) => {
+        const byRole = new Map<string, (number | null)[]>()
+        for (const line of [...list].sort(
+          (x, y) => x.spot_index - y.spot_index,
+        )) {
+          byRole.set(line.role, [
+            ...(byRole.get(line.role) ?? []),
+            line.actual_minor,
+          ])
+        }
+        return byRole
+      }
+      const { data: oldLines } = await client
+        .from("match_line")
+        .select("role, spot_index, actual_minor")
+        .eq("match_id", first.match_id!)
+      const { data: newLines } = await client
+        .from("match_line")
+        .select("role, spot_index, actual_minor")
+        .eq("match_id", second.match_id!)
+      expect(newLines).toHaveLength(12)
+      const oldByRole = orderedByRole(oldLines!)
+      const newByRole = orderedByRole(newLines!)
+      // Preference per slot key (index within the role, ordered by spot
+      // index): what this call entered, else what the old line recorded,
+      // else empty for review.
+      for (const [role, actuals] of newByRole) {
+        const before = oldByRole.get(role) ?? []
+        const spots = [...newLines!]
+          .filter((line) => line.role === role)
+          .sort((x, y) => x.spot_index - y.spot_index)
+          .map((line) => line.spot_index)
+        actuals.forEach((actual, index) => {
+          expect(actual).toBe(
+            enteredAgain[spots[index]] ?? before[index] ?? null,
+          )
+        })
+      }
+      // History stays whole: the retired match keeps all twelve frozen lines.
+      const { count: kept } = await client
+        .from("match_line")
+        .select("id", { count: "exact", head: true })
+        .eq("match_id", first.match_id!)
+      expect(kept).toBe(12)
+    })
+
+    test("two plays at once leave one active match and no orphan rows (AC-9)", async () => {
+      const { client } = await player([INCOME], [COSTS])
+      const lines = payloadLines(await spotsOf("4-4-2"), INCOME, COSTS)
+      const codes = (
+        await Promise.all([
+          call(client, "4-4-2", lines),
+          call(client, "4-4-2", lines),
+        ])
+      ).map((r) => r.code)
+      // Who wins is timing. What may never happen is a month that plays twice
+      // or a match that lands without its lines.
+      expect(codes.filter((c) => c === "ok").length).toBeGreaterThanOrEqual(1)
+      for (const code of codes) {
+        expect(["ok", "conflict"]).toContain(code)
+      }
+
+      const { data: matches } = await client
+        .from("match")
+        .select("id, status")
+        .eq("period", currentLagosPeriod())
+      const active = matches?.filter((m) => m.status === "active") ?? []
+      expect(active).toHaveLength(1)
+      const { count: lineCount } = await client
+        .from("match_line")
+        .select("id", { count: "exact", head: true })
+        .eq("match_id", active[0]!.id)
+      expect(lineCount).toBe(12)
+      // Every month these accounts played is whole: twelve lines, one active
+      // row per period. Checked as the migration role, outside anyone's reach.
+      const owned = players.map((id) => `'${id}'::uuid`).join(", ")
+      const checks = await dbQuery(`
+        select
+          (select count(*) from public.match m
+             where m.user_id in (${owned})
+               and (select count(*) from public.match_line ml
+                    where ml.match_id = m.id) <> 12),
+          (select count(*) from (
+             select user_id, period from public.match
+             where status = 'active' and user_id in (${owned})
+             group by user_id, period having count(*) > 1) dupes)
+      `)
+      expect(countsIn(checks)).toEqual([0, 0])
+    })
+  },
+)
 
 describe.skipIf(!enabled)(
   "history and balance rules",

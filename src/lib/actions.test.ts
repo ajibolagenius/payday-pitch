@@ -17,6 +17,7 @@ import { z } from "zod"
 import {
   actionError,
   actionOk,
+  authedAction,
   parsePayload,
   requireClaims,
 } from "@/lib/actions"
@@ -129,5 +130,89 @@ describe("requireClaims", () => {
     mocks.createActionClient.mockResolvedValue(mocks.client)
     mocks.client.auth.getClaims.mockResolvedValue({ data: null })
     await expect(requireClaims()).resolves.toBeNull()
+  })
+})
+
+describe("authedAction", () => {
+  const writeSchema = z.object({ name: z.string().min(1) })
+
+  beforeEach(() => {
+    vi.spyOn(console, "error").mockImplementation(() => {})
+  })
+
+  it("hands the handler the claims identity and the parsed input, never a client user id", async () => {
+    mocks.createActionClient.mockResolvedValue(mocks.client)
+    mocks.client.auth.getClaims.mockResolvedValue({
+      data: { claims: { sub: "user-1" } },
+    })
+    const handler = vi.fn(async ({ userId, input }) =>
+      actionOk(`${userId}:${input.name}`),
+    )
+    const action = authedAction(writeSchema, handler)
+    await expect(action({ name: "rent" })).resolves.toEqual({
+      ok: true,
+      data: "user-1:rent",
+    })
+    expect(handler).toHaveBeenCalledTimes(1)
+  })
+
+  it("maps a rejected payload to the validation code with field errors", async () => {
+    const action = authedAction(writeSchema, async () => actionOk())
+    const result = await action({ name: "" })
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: "validation",
+        message: "Please correct the highlighted fields.",
+        fieldErrors: { name: [expect.any(String)] },
+      },
+    })
+  })
+
+  it("answers session_expired when the claims are gone", async () => {
+    mocks.createActionClient.mockResolvedValue(mocks.client)
+    mocks.client.auth.getClaims.mockResolvedValue({ data: { claims: {} } })
+    const handler = vi.fn()
+    const action = authedAction(writeSchema, handler)
+    const result = await action({ name: "rent" })
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "session_expired" },
+    })
+    expect(handler).not.toHaveBeenCalled()
+  })
+
+  it("passes a handler's expected failure through untouched", async () => {
+    mocks.createActionClient.mockResolvedValue(mocks.client)
+    mocks.client.auth.getClaims.mockResolvedValue({
+      data: { claims: { sub: "user-1" } },
+    })
+    const action = authedAction(writeSchema, async () =>
+      actionError("unable_to_cover", "Short by ₦2,000."),
+    )
+    await expect(action({ name: "rent" })).resolves.toEqual({
+      ok: false,
+      error: { code: "unable_to_cover", message: "Short by ₦2,000." },
+    })
+  })
+
+  it("catches an unmapped throw and answers unexpected, logging server side only", async () => {
+    mocks.createActionClient.mockResolvedValue(mocks.client)
+    mocks.client.auth.getClaims.mockResolvedValue({
+      data: { claims: { sub: "user-1" } },
+    })
+    const action = authedAction(writeSchema, async () => {
+      throw new Error("raw trigger text with amounts")
+    })
+    const result = await action({ name: "rent" })
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: "unexpected",
+        message: "Something went wrong. Try again.",
+      },
+    })
+    expect(console.error).toHaveBeenCalled()
+    expect(JSON.stringify(result)).not.toContain("raw trigger text")
   })
 })

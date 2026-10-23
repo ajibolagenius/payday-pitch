@@ -1,13 +1,27 @@
-// Placeholder so the installed app's start_url resolves, inside the (app)
-// layout's getClaims() guard. Feature 6 replaces this with the first match
-// loop; the sign-out affordance stays.
+// The signed in home: the first match loop (spec 0007). One round of reads
+// decides where the walk opens, so the state of the data is the progress. The
+// (app) layout already checked claims and created the profile row; the guard
+// here only narrows the user id.
 import Link from "next/link"
+import { redirect } from "next/navigation"
 
 import { SignOutButton } from "@/components/auth/sign-out-button"
+import { Walk } from "@/components/walk/walk"
+import { loadWalk } from "@/features/match/queries"
+import { createSupabaseServerClient } from "@/lib/supabase/server"
 
-export default function AppHome() {
+export default async function AppHome() {
+  const supabase = await createSupabaseServerClient()
+  const { data } = await supabase.auth.getClaims()
+  const userId = data?.claims?.sub
+  if (!userId) redirect("/sign-in")
+
+  // A failed read is an error state on this screen, not a crash: nothing here
+  // can be fixed by retrying a different route.
+  const walk = await loadWalk(supabase, userId).catch(() => null)
+
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 px-4 py-16">
+    <div className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 py-8">
       <div className="flex items-center justify-between">
         <Link
           href="/"
@@ -17,9 +31,23 @@ export default function AppHome() {
         </Link>
         <SignOutButton />
       </div>
-      <main className="flex flex-1 flex-col justify-center gap-4">
-        <h1 className="text-3xl font-bold">Your pitch</h1>
-        <p>Your formation will show here.</p>
+      <main className="flex-1">
+        {walk ? (
+          <Walk walk={walk} />
+        ) : (
+          <div className="bg-muted rounded-lg p-4">
+            <h1 className="text-lg font-bold">Could not load your season</h1>
+            <p className="text-muted-foreground mt-1 text-sm">
+              The numbers did not come through. Reload to try again.
+            </p>
+            <Link
+              href="/app"
+              className="text-accent mt-3 inline-block text-sm underline underline-offset-4"
+            >
+              Reload
+            </Link>
+          </div>
+        )}
       </main>
     </div>
   )

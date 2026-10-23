@@ -19,7 +19,11 @@ export default defineConfig({
     {
       name: "phone",
       use: { ...devices["Pixel 7"] },
-      testIgnore: ["**/design-system.spec.ts", "**/auth.spec.ts"],
+      testIgnore: [
+        "**/design-system.spec.ts",
+        "**/auth.spec.ts",
+        "**/walk.spec.ts",
+      ],
     },
     {
       name: "design-system",
@@ -33,6 +37,13 @@ export default defineConfig({
       name: "auth",
       use: { ...devices["Pixel 7"], baseURL: DEV_ORIGIN },
       testMatch: ["**/auth.spec.ts"],
+    },
+    {
+      // The match loop signs a fresh account in through Mailpit, so it needs
+      // the same origin and the same dev server as auth.
+      name: "walk",
+      use: { ...devices["Pixel 7"], baseURL: DEV_ORIGIN },
+      testMatch: ["**/walk.spec.ts"],
     },
   ],
   webServer: [
