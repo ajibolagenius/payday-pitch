@@ -29,7 +29,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         className={`${spaceGrotesk.variable} flex min-h-full flex-col font-sans antialiased`}
       >
         <Providers>{children}</Providers>
-        <SwRegister version={process.env.VERCEL_GIT_COMMIT_SHA ?? "dev"} />
+        <SwRegister version={process.env.GIT_SHA ?? "dev"} />
       </body>
     </html>
   )

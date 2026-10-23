@@ -4,7 +4,7 @@ import { useId } from "react"
 import { LayoutGroup } from "motion/react"
 import { PitchField } from "@/components/pitch/pitch-field"
 import { PlayerNode, type PitchPlayer } from "@/components/pitch/player-node"
-import type { Formation } from "@/domain/formations"
+import type { Formation, SlotCoordinate } from "@/domain/formations"
 import { formationSlotCoordinates } from "@/domain/formations"
 
 export type PitchSlotAmount = {
@@ -19,9 +19,9 @@ function shirtNumber(role: string, pitchIndex: number): number | null {
 
 function toPlayers(
   formation: Formation,
+  coordinates: SlotCoordinate[],
   amounts: PitchSlotAmount[],
 ): PitchPlayer[] {
-  const coordinates = formationSlotCoordinates(formation.name)
   let pitchIndex = -1
   return formation.positions.map((position, i) => {
     if (position.role !== "BENCH") pitchIndex += 1
@@ -54,7 +54,10 @@ export function PitchView({
   selectedSlotKey?: string
 }) {
   const headingId = useId()
-  const players = toPlayers(formation, amounts)
+  const coordinates = formationSlotCoordinates(formation.name)
+  // A shape without a coordinate table (a future custom tactic) renders as
+  // an empty field instead of crashing the screen around it.
+  const players = coordinates ? toPlayers(formation, coordinates, amounts) : []
   const onPitch = players.filter((p) => p.role !== "BENCH")
   const bench = players.filter((p) => p.role === "BENCH")
 
@@ -93,7 +96,7 @@ export function PitchView({
         {bench.map((player) => (
           <PlayerNode
             key={player.slotKey}
-            player={{ ...player, y: 60 }}
+            player={player}
             interactive={onSelectSlot !== undefined}
             selected={player.slotKey === selectedSlotKey}
             onSelect={onSelectSlot}

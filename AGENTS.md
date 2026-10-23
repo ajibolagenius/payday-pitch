@@ -4,7 +4,7 @@ A mobile friendly, installable web app that helps salary earners build wealth by
 
 ## Stack
 
-TypeScript strict, Node 24 (`.nvmrc`, `engines`), pnpm 11, Next.js 16 App Router with Turbopack, React 19, Tailwind CSS v4 (tokens in `src/app/globals.css`). Supabase (Postgres, RLS, Auth), Zod 4, shadcn/ui, Vitest, Playwright: decided in spec 0001, not yet in the scaffold. Full table: [spec 0001](docs/specs/0001-stack-architecture/index.md).
+TypeScript strict, Node 24 (`.nvmrc`, `engines`), pnpm 11, Next.js 16 App Router with Turbopack, React 19, Tailwind CSS v4 (tokens in `src/app/globals.css`). Supabase (Postgres, RLS, Auth), Zod 4, shadcn/ui, Vitest, Playwright: decided in spec 0001, all installed and in use. Full table: [spec 0001](docs/specs/0001-stack-architecture/index.md).
 
 ## Build approach
 
@@ -42,6 +42,9 @@ Installed elsewhere, load when the area comes up:
 - [sharp](.agents/skills/sharp/): `clasen/skills`, image work behind `pnpm icons` (resize, SVG to PNG, composite, metadata).
 - ask-sonner (global, `~/.claude/skills/ask-sonner/`): `emilkowalski/skills`, toast conventions for `sonner` (mount the Toaster once, promise and loading toasts, avoid double toasts and modal z-index clashes).
 - impeccable (global, `~/.agents/skills/impeccable/`): the AI design skill adopted by spec 0005; activate when designing, reshaping, or critiquing any UI surface.
+- supabase (global): Supabase clients, auth, RLS, and SSR integration guidance.
+- react-email (global): email templates and rendering for `src/emails/` (sign up and recovery).
+- MCP servers: Supabase (connected), Resend (connected), per spec 0006.
 
 ## Commands
 
@@ -51,6 +54,8 @@ pnpm dev          # dev server (re-adds the next rules block below; keep it comm
 pnpm build
 pnpm typecheck    # next typegen && tsc --noEmit
 pnpm test         # Vitest unit tests (tests beside source as *.test.ts)
+pnpm test:db      # RLS isolation suite (needs the local Supabase stack running)
+pnpm db:types     # regenerate src/lib/supabase/database.types.ts after a migration
 pnpm test:e2e     # Playwright, specs in tests/e2e
 pnpm lint         # ESLint, --max-warnings 0
 pnpm check:hex    # no hex color literals outside globals.css and the artwork carve out
@@ -72,7 +77,8 @@ Architecture specs live in `docs/specs/NNNN-slug/index.md`. The living product p
 - No hex color literals outside the raw layer of `src/app/globals.css` and the artwork carve out (`src/components/pitch/**`, `src/components/stickers/**`, `src/lib/brand.ts`). `pnpm check:hex` and the ESLint rule enforce it.
 - Every amount on screen renders through `<MoneyText>` (formats integer kobo via `src/domain/money.ts`). No component formats money by hand.
 - Motion (`motion/react`) is the only animation library. Every animated property is gated by `prefers-reduced-motion` (hook: `src/lib/use-prefers-reduced-motion.ts`).
-- No Vercel only runtime APIs (portability rule, spec 0001).
+- The service worker never caches signed in pages under `/app` (Cache Storage is shared by the whole origin, so a stored money page could leak to the next person on the device). Offline `/app` shows the offline page. Only public pages and the shell are cached. This supersedes the per user page cache described in spec 0001 (pending /architect reconciliation).
+- No Vercel only runtime APIs (portability rule, spec 0001). The service worker version comes from the `GIT_SHA` build env var, never a Vercel env var.
 
 ## Context files
 

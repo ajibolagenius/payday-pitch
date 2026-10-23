@@ -7,20 +7,16 @@ import { expect, test, type BrowserContext, type Page } from "@playwright/test"
 const cacheKeys = (page: Page) => page.evaluate(() => caches.keys())
 const pageCaches = async (page: Page) =>
   (await cacheKeys(page)).filter((k) => k.startsWith("pages-"))
-const tell = (page: Page, message: { type: string; id?: string }) =>
-  page.evaluate(
-    (m) => navigator.serviceWorker.controller!.postMessage(m),
-    message,
-  )
 const heading = (page: Page) => page.getByRole("heading", { level: 1 })
 
 // /app is behind the session guard as of spec 0006, so an anonymous navigation
-// there redirects, and a redirect is never cached. These tests are about the
-// worker's per-user cache rules, so the signed-in page is answered here instead.
-// Callers must drop the fake before going offline: the offline read is only
-// meaningful when the real network fails and the worker falls back to its cache.
+// there redirects, and a redirect is never cached. The worker also stores no
+// /app copy at all (audit finding: a cached money page is readable by anyone
+// on the origin), so the fake answer below proves even a served /app lands
+// nowhere. Callers must drop the fake before going offline: the offline read
+// must fail for real and fall through to the offline page.
 const APP_HTML =
-  '<!DOCTYPE html><html lang="en"><body><h1>Your pitch (cached)</h1></body></html>'
+  '<!DOCTYPE html><html lang="en"><body><h1>Your pitch (served)</h1></body></html>'
 
 async function fakeAppPage(context: BrowserContext) {
   // Context level: the worker issues the navigation fetch, not the page.
@@ -140,66 +136,20 @@ test.describe("offline", () => {
     await expect(heading(page)).toHaveText("You are offline")
   })
 
-  test("an unknown user caches nothing under /app", async ({
+  test("an /app visit is served but never cached", async ({
     page,
     context,
   }) => {
     await controlled(page)
     await fakeAppPage(context)
     await page.goto("/app")
+    await expect(heading(page)).toHaveText("Your pitch (served)")
     await realAppPage(context)
-    await context.setOffline(true)
-    await page.goto("/app")
-    await expect(heading(page)).toHaveText("You are offline")
     expect(await pageCaches(page)).toEqual([])
-  })
 
-  test("a known user's /app is cached for them and works offline", async ({
-    page,
-    context,
-  }) => {
-    await controlled(page)
-    await fakeAppPage(context)
-    await tell(page, { type: "user", id: "a" })
-    await page.goto("/app")
-    const online = await heading(page).textContent()
-    await expect
-      .poll(() => pageCaches(page))
-      .toEqual([expect.stringMatching(/^pages-.+-a$/)])
-
-    await realAppPage(context)
-    await context.setOffline(true)
-    await page.goto("/app")
-    await expect(heading(page)).toHaveText(online!)
-  })
-
-  test("switching user drops the last user's pages", async ({
-    page,
-    context,
-  }) => {
-    await controlled(page)
-    await fakeAppPage(context)
-    await tell(page, { type: "user", id: "a" })
-    await page.goto("/app")
-    await expect.poll(() => pageCaches(page)).toHaveLength(1)
-
-    await tell(page, { type: "user", id: "b" })
-    await expect.poll(() => pageCaches(page)).toEqual([])
-    await realAppPage(context)
     await context.setOffline(true)
     await page.goto("/app")
     await expect(heading(page)).toHaveText("You are offline")
-  })
-
-  test("sign out clears every pages cache", async ({ context, page }) => {
-    await controlled(page)
-    await fakeAppPage(context)
-    await tell(page, { type: "user", id: "a" })
-    await page.goto("/app")
-    await expect.poll(() => pageCaches(page)).toHaveLength(1)
-
-    await tell(page, { type: "sign-out" })
-    await expect.poll(() => pageCaches(page)).toEqual([])
   })
 })
 

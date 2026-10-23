@@ -145,8 +145,9 @@ export const FORMATIONS: Formation[] = [
 
 export type SlotCoordinate = { x: number; y: number }
 
-// Bench slots sit below the grass in the bench strip, outside the pitch bounds.
-const BENCH: SlotCoordinate = { x: 50, y: 97 }
+// The bench node renders inside the strip below the field: x and y are
+// percents of that strip, not of the grass (the view uses these directly).
+const BENCH: SlotCoordinate = { x: 50, y: 60 }
 
 // Pitch coordinates per formation, index-aligned with `positions` (the seed
 // order: GK, DEF, MID, FWD, BENCH). x: 0..100 touchlines, y: 0..100 goal to
@@ -240,10 +241,11 @@ const SLOT_COORDINATES: Record<string, SlotCoordinate[]> = {
 
 // The 12 slot positions of a seeded formation, in seed order (11 on pitch
 // plus the BENCH slot), keyed by the formation name. Pure data, imports
-// nothing (spec 0001 domain rule).
+// nothing (spec 0001 domain rule). Undefined for any name without a
+// coordinate table — custom tactics (feature 7) must supply their own.
 export function formationSlotCoordinates(
   formationId: string,
-): SlotCoordinate[] {
+): SlotCoordinate[] | undefined {
   return SLOT_COORDINATES[formationId]
 }
 

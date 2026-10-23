@@ -47,16 +47,18 @@ describe("formationSlotCoordinates", () => {
     (name) => {
       const coords = formationSlotCoordinates(name)
       expect(coords).toHaveLength(12)
+      if (!coords) return // unreachable: the seeded six all have coordinates
       expect(coords[0]).toEqual({ x: 50, y: 90 })
-      // The bench slot lives in the strip below the SVG, not on the grass.
-      expect(coords[11]).toEqual({ x: 50, y: 97 })
+      // The bench slot is a percent of the strip below the field, not the grass.
+      expect(coords[11]).toEqual({ x: 50, y: 60 })
     },
   )
 
   it.each(FORMATIONS.map((f) => [f.name] as const))(
     "%s keeps all 11 pitch slots inside the drawable area",
     (name) => {
-      const pitch = formationSlotCoordinates(name).slice(0, 11)
+      const pitch = formationSlotCoordinates(name)?.slice(0, 11) ?? []
+      expect(pitch).toHaveLength(11)
       for (const p of pitch) {
         expect(p.x).toBeGreaterThanOrEqual(5)
         expect(p.x).toBeLessThanOrEqual(95)
@@ -69,7 +71,7 @@ describe("formationSlotCoordinates", () => {
   it.each(FORMATIONS.map((f) => [f.name] as const))(
     "%s spaces pitch slots at least 8 percent apart",
     (name) => {
-      const pitch = formationSlotCoordinates(name).slice(0, 11)
+      const pitch = formationSlotCoordinates(name)?.slice(0, 11) ?? []
       for (const [i, p] of pitch.entries()) {
         for (const q of pitch.slice(i + 1)) {
           expect(Math.hypot(p.x - q.x, p.y - q.y)).toBeGreaterThanOrEqual(8)

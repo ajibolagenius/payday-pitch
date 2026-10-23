@@ -1,7 +1,12 @@
 // The profile row is created lazily by upsert (spec 0004, AC-10). Feature 5
 // calls ensureProfile from the first authenticated read path. Reads tolerate a
 // missing row until then: the user's currency is simply NGN, the table default.
-import { supabaseServerClient } from "@/lib/supabase/server"
+// The client is required and must carry the signed-in user's token: the anon
+// role holds no grants at all (rls.test proves it), so an anon client here
+// would fail silently by design.
+import type { SupabaseClient } from "@supabase/supabase-js"
+
+import type { Database } from "@/lib/supabase/database.types"
 
 export type ProfileRow = {
   user_id: string
@@ -11,7 +16,7 @@ export type ProfileRow = {
 
 export async function ensureProfile(
   userId: string,
-  client = supabaseServerClient(),
+  client: SupabaseClient<Database>,
 ): Promise<ProfileRow | null> {
   const { error } = await client
     .from("profile")
