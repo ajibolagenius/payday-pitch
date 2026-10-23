@@ -24,10 +24,7 @@ const palette = {
 const outDir = path.resolve(import.meta.dirname, "../supabase/templates")
 await mkdir(outDir, { recursive: true })
 
-const confirmation = await render(
-  ConfirmationEmail(palette),
-  { pretty: true }
-)
+const confirmation = await render(ConfirmationEmail(palette), { pretty: true })
 await writeFile(path.join(outDir, "confirmation.html"), confirmation)
 
 const recovery = await render(RecoveryEmail(palette), { pretty: true })

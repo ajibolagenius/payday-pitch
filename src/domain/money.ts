@@ -1,28 +1,43 @@
 // Money lives in exact integer minor units (kobo), never floats. Spec 0001.
-// This seed module carries only the amount type and the kobo formatter;
+// This seed module carries only the amount type and the minor-unit formatter;
 // feature 3 (data model) owns the rest of the money maths.
 
 export type Amount = {
   kobo: number
-  currency: "NGN" | (string & {})
+  /** ISO 4217 code as stored by the schema's char(3) columns. */
+  currency: string
 }
 
-const ngn = new Intl.NumberFormat("en-NG", {
-  style: "currency",
-  currency: "NGN",
-  minimumFractionDigits: 2,
-})
+// One formatter per currency code, built on demand: the schema allows any
+// ISO code, so nothing here may assume naira. Stored kobo is always hundredths
+// (spec 0004), hence the /100 in formatKobo for every currency. Fraction
+// digits are left to Intl per code: 2 for NGN and USD, 0 for JPY, 3 for KWD.
+const formatters = new Map<string, Intl.NumberFormat>()
 
-const ngnPlain = new Intl.NumberFormat("en-NG", {
+function formatter(currency: string): Intl.NumberFormat {
+  let built = formatters.get(currency)
+  if (!built) {
+    built = new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency,
+    })
+    formatters.set(currency, built)
+  }
+  return built
+}
+
+export function formatKobo(amount: Amount): string {
+  return formatter(amount.currency).format(amount.kobo / 100)
+}
+
+const plain = new Intl.NumberFormat("en-NG", {
   minimumFractionDigits: 0,
   maximumFractionDigits: 0,
 })
 
-export function formatKobo(amount: Amount): string {
-  return ngn.format(amount.kobo / 100)
-}
-
-// Screen reader form: "45,000 naira", never the raw "₦" glyph.
+// Screen reader form: "45,000 naira", never the raw "₦" glyph. Floored to
+// whole units: a stored amount must never be announced larger than it is.
 export function formatKoboSpoken(amount: Amount): string {
-  return `${ngnPlain.format(Math.round(amount.kobo / 100))} naira`
+  const unit = amount.currency === "NGN" ? "naira" : amount.currency
+  return `${plain.format(Math.floor(amount.kobo / 100))} ${unit}`
 }

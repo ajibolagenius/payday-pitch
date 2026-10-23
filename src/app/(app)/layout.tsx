@@ -1,13 +1,12 @@
 // The real guard (spec 0006 AC-8): claims checked server-side on every render,
-// profile row created lazily on first authenticated read, signed-in identity
-// handed to the service worker so page caches are keyed per user (spec 0001).
+// profile row created lazily on first authenticated read. The worker never
+// caches /app, so signed-in money pages cannot outlive the session on disk.
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 
 import { safeRedirectPath } from "@/features/auth/redirect"
 import { ensureProfile } from "@/features/profile/profile"
 import { createSupabaseServerClient } from "@/lib/supabase/server"
-import { SignedInUser } from "@/components/signed-in-user"
 
 export default async function AppLayout({
   children,
@@ -33,10 +32,5 @@ export default async function AppLayout({
   // ensureProfile never throws; a null profile is a placeholder, not a failure.
   await ensureProfile(claims.sub, supabase)
 
-  return (
-    <>
-      <SignedInUser userId={claims.sub} />
-      {children}
-    </>
-  )
+  return <>{children}</>
 }
