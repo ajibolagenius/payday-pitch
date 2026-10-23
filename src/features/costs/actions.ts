@@ -27,7 +27,9 @@ export const addFixedCostAction = authedAction(
 export const updateFixedCostAction = authedAction(
   costSchema,
   async ({ userId, client, input }) => {
-    if (!input.id) return actionOk()
+    if (!input.id) {
+      return actionError("validation", "An update needs the row to change.")
+    }
     const { data, error } = await client
       .from("fixed_cost")
       .update({ name: input.name, amount_minor: input.amountNaira })

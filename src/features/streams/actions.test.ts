@@ -132,6 +132,18 @@ describe("addIncomeAction", () => {
 })
 
 describe("updateIncomeAction", () => {
+  it("refuses a payload that names no row instead of reporting a save", async () => {
+    signedIn()
+    await expect(
+      updateIncomeAction({
+        name: "Side hustle",
+        amountNaira: "80000",
+        paydayDay: "15",
+      }),
+    ).resolves.toMatchObject({ ok: false, error: { code: "validation" } })
+    expect(mocks.client.from).not.toHaveBeenCalled()
+  })
+
   it("filters by id and the claims user, and reports not_found on a zero-row write", async () => {
     signedIn()
     mocks.outcomes.update = { data: [] }

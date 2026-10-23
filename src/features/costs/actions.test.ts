@@ -99,6 +99,14 @@ describe("addFixedCostAction", () => {
 })
 
 describe("updateFixedCostAction", () => {
+  it("refuses a payload that names no row instead of reporting a save", async () => {
+    signedIn()
+    await expect(
+      updateFixedCostAction({ name: "Food", amountNaira: "50000" }),
+    ).resolves.toMatchObject({ ok: false, error: { code: "validation" } })
+    expect(mocks.client.from).not.toHaveBeenCalled()
+  })
+
   it("maps a zero-row write to not_found", async () => {
     signedIn()
     mocks.outcomes.update = { data: [] }

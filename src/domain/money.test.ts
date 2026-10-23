@@ -100,6 +100,16 @@ describe("parseNaira", () => {
     expect(parseNaira("1e3")).toBeNull()
     expect(parseNaira(" 45000")).toBeNull()
   })
+
+  // Spec 0007 AC-6: an entered actual of 0.00 means "moved nothing", a stored
+  // zero rather than a rejected amount. Only the caller that collects
+  // actuals says zero counts.
+  it("takes zero when the caller says zero is a real answer", () => {
+    expect(parseNaira("0", true)).toBe(0)
+    expect(parseNaira("0.00", true)).toBe(0)
+    expect(parseNaira("0.000", true)).toBeNull()
+    expect(parseNaira("-1", true)).toBeNull()
+  })
 })
 
 describe("zoneShareKobo", () => {
@@ -128,6 +138,16 @@ describe("splitMatch", () => {
       .filter((l) => l.role === "DEF")
       .reduce((s, l) => s + l.plannedKobo, 0)
     expect(defTotal).toBe(costs)
+  })
+
+  // Regression: the pitch zips amounts with positions by index, so a defense
+  // first line up put a defender's number on the keeper's shirt.
+  it("returns lines in spot order, index aligned with the positions in", () => {
+    const { lines } = splitMatch(fourFourTwo, income, costs)
+    expect(lines.map((l) => l.spotIndex)).toEqual(fourFourTwo.map((_, i) => i))
+    expect(lines[0].role).toBe("GK")
+    expect(lines[1].role).toBe("DEF")
+    expect(lines[11].role).toBe("BENCH")
   })
 
   it("keeps every planned amount non-negative and integer", () => {

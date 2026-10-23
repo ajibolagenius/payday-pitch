@@ -44,15 +44,18 @@ export function formatKoboSpoken(amount: Amount): string {
 
 // AC-2: whole naira or up to two decimals, nothing else. No sign, no
 // exponent, no thousands separators; "0" and negative strings fail the
-// pattern or the > 0 guard below.
+// pattern or the > 0 guard below. Zero is a rejected amount for incomes and
+// costs, but an entered actual may be zero (spec 0007 AC-6: moved nothing),
+// so the caller says whether zero counts.
 const NAIRA_PATTERN = /^\d+(\.\d{1,2})?$/
 
-export function parseNaira(input: string): number | null {
+export function parseNaira(input: string, allowZero = false): number | null {
   if (!NAIRA_PATTERN.test(input)) return null
   // x100 before rounding keeps the value inside float safety for real
   // salaries; the pattern already rejected a third decimal.
   const kobo = Math.round(Number(input) * 100)
-  return kobo > 0 ? kobo : null
+  if (kobo === 0) return allowZero ? 0 : null
+  return kobo
 }
 
 // AC-5: a zone's share of income, floored, integer math only.
@@ -133,11 +136,12 @@ export function splitMatch(
   if (shortfall !== null) {
     return { lines: [], shortfallKobo: shortfall }
   }
-  return {
-    lines: [
-      ...allocate(costKobo, def),
-      ...allocate(incomeKobo - costKobo, rest),
-    ],
-    shortfallKobo: null,
-  }
+  // Back in spot order, so lines[i] belongs to positions[i]: the pitch renders
+  // the two zipped by index, and a defense first line up would mislabel every
+  // shirt after the back four.
+  const lines = [
+    ...allocate(costKobo, def),
+    ...allocate(incomeKobo - costKobo, rest),
+  ].sort((a, b) => a.spotIndex - b.spotIndex)
+  return { lines, shortfallKobo: null }
 }

@@ -30,7 +30,9 @@ export const addIncomeAction = authedAction(
 export const updateIncomeAction = authedAction(
   incomeSchema,
   async ({ userId, client, input }) => {
-    if (!input.id) return actionOk()
+    if (!input.id) {
+      return actionError("validation", "An update needs the row to change.")
+    }
     const { data, error } = await client
       .from("income_stream")
       .update({

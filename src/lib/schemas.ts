@@ -20,3 +20,21 @@ export const entryName = z
   .max(80, "Keep the name under 80 characters.")
 
 export const rowId = z.coerce.number().int().positive()
+
+// An entered actual (spec 0007 AC-6): leaving the box blank means not logged,
+// and "0.00" means moved nothing. Those are two different stored answers, so
+// null and zero both pass and only a malformed amount is a field error.
+export const nairaActual = z
+  .union([z.string(), z.null()])
+  .refine(
+    (value) =>
+      value === null ||
+      value.trim() === "" ||
+      parseNaira(value.trim(), true) !== null,
+    { message: "Enter 0 or more, up to kobo." },
+  )
+  .transform((value) =>
+    value === null || value.trim() === ""
+      ? null
+      : parseNaira(value.trim(), true),
+  )

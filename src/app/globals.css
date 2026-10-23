@@ -121,3 +121,73 @@
 .money {
   font-variant-numeric: tabular-nums;
 }
+
+/* Driver.js pitch tour (spec 0007 AC-7). The library ships hard coded colours,
+   so the theme overrides the class the component passes as popoverClass. The
+   wrapper needs both classes: driver's own `.driver-popover` carries the same
+   weight as one class and its stylesheet arrives after this one. Every value
+   here reads a semantic token. */
+.driver-popover.tour-popover {
+  font-family: var(--font-space-grotesk);
+  background-color: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.25);
+}
+
+.tour-popover .driver-popover-title {
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.tour-popover .driver-popover-description,
+.tour-popover .driver-popover-progress-text,
+.tour-popover .driver-popover-close-btn {
+  color: var(--muted-foreground);
+}
+
+.tour-popover .driver-popover-close-btn:hover,
+.tour-popover .driver-popover-close-btn:focus-visible {
+  color: var(--card-foreground);
+}
+
+.tour-popover .driver-popover-footer-btn {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  padding: 5px 12px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.tour-popover .driver-popover-footer-btn:hover,
+.tour-popover .driver-popover-footer-btn:focus {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.tour-popover .driver-popover-footer .driver-popover-btn-disabled {
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  border-color: var(--border);
+}
+
+/* The arrow paints one side of a four sided border, so each placement gets its
+   own rule: recolouring all sides would bring back a white diamond. */
+.tour-popover .driver-popover-arrow-side-bottom {
+  border-top-color: var(--card);
+}
+
+.tour-popover .driver-popover-arrow-side-top {
+  border-bottom-color: var(--card);
+}
+
+.tour-popover .driver-popover-arrow-side-left {
+  border-right-color: var(--card);
+}
+
+.tour-popover .driver-popover-arrow-side-right {
+  border-left-color: var(--card);
+}

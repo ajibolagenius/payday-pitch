@@ -162,9 +162,10 @@ test.describe("account journey", () => {
     expect(link).toContain("/auth/v1/verify")
     await page.goto(link)
     await expect(page).toHaveURL(/\/app$/)
-    await expect(
-      page.getByRole("heading", { name: "Your pitch" }),
-    ).toBeVisible()
+    // The app home for a brand new account is the walk, which opens on incomes
+    // (spec 0007 AC-1). Its heading is the match loop's business, so this spec
+    // proves the session landed by the account control the home always carries.
+    await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible()
 
     // Persistent session cookie (AC-7): maxAge around a year.
     const authCookie = (await context.cookies()).find(
@@ -336,5 +337,5 @@ test("manual browsing on the localhost alias canonicalizes and confirms", async 
   const link = await latestLink(context, aliasEmail)
   await page.goto(link)
   await expect(page).toHaveURL(/\/app$/)
-  await expect(page.getByRole("heading", { name: "Your pitch" })).toBeVisible()
+  await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible()
 })
