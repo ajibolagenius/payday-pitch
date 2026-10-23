@@ -1,10 +1,10 @@
 // The six built-in formations. Pure data, the seed source for the
 // formation_shape and formation_position tables (spec 0004, AC-4).
 // basis_points are hundredths of a percent and must sum to 10000 per shape.
-// Zone rule: DEF spots always share the real fixed cost total (the money
-// engine in feature 6 splits defense by headcount, not by basis points);
-// a DEF shape zone share below a user's costs renders that shape unable
-// to cover, and the create action refuses it.
+// Zone rule: DEF spots always share the real fixed cost total, split by
+// intra-zone basis points with largest remainder (spec 0004's two step rule,
+// built in feature 6's money engine); a DEF shape zone share below a user's
+// costs renders that shape unable to cover, and the play function refuses it.
 
 export type FormationRole = "GK" | "DEF" | "MID" | "FWD" | "BENCH"
 
