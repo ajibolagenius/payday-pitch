@@ -44,6 +44,17 @@ describe("formatKobo", () => {
     expect(text).not.toContain("₦")
     expect(text).toContain("10.00")
   })
+
+  // Kobo is always hundredths (spec 0004); the displayed fraction digits
+  // come from the currency code itself, not a forced two.
+  it("uses the currency's own fraction digits", () => {
+    const yen = formatKobo({ kobo: 100_000, currency: "JPY" })
+    expect(yen).toContain("1,000")
+    expect(yen).not.toMatch(/\.\d/)
+    expect(formatKobo({ kobo: 100_000, currency: "KWD" })).toContain(
+      "1,000.000",
+    )
+  })
 })
 
 describe("formatKoboSpoken", () => {

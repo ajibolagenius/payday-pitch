@@ -10,6 +10,13 @@ function gitSha(): string {
       encoding: "utf8",
     }).trim()
   } catch {
+    // Production must not silently version every build as "dev": two deploys
+    // sharing a cache name never evict each other, so a stale shell survives.
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "Cannot resolve a build version: set GIT_SHA or build from a git checkout.",
+      )
+    }
     return "dev"
   }
 }

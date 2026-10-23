@@ -9,7 +9,9 @@ export type Amount = {
 }
 
 // One formatter per currency code, built on demand: the schema allows any
-// ISO code, so nothing here may assume naira.
+// ISO code, so nothing here may assume naira. Stored kobo is always hundredths
+// (spec 0004), hence the /100 in formatKobo for every currency. Fraction
+// digits are left to Intl per code: 2 for NGN and USD, 0 for JPY, 3 for KWD.
 const formatters = new Map<string, Intl.NumberFormat>()
 
 function formatter(currency: string): Intl.NumberFormat {
@@ -18,7 +20,6 @@ function formatter(currency: string): Intl.NumberFormat {
     built = new Intl.NumberFormat("en-NG", {
       style: "currency",
       currency,
-      minimumFractionDigits: 2,
     })
     formatters.set(currency, built)
   }

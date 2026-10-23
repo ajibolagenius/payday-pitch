@@ -83,4 +83,9 @@ describe("formationSlotCoordinates", () => {
   it("knows no other formation", () => {
     expect(formationSlotCoordinates("4-4-2-lie")).toBeUndefined()
   })
+
+  it("never returns an inherited object property", () => {
+    expect(formationSlotCoordinates("constructor")).toBeUndefined()
+    expect(formationSlotCoordinates("toString")).toBeUndefined()
+  })
 })

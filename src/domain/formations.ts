@@ -246,7 +246,11 @@ const SLOT_COORDINATES: Record<string, SlotCoordinate[]> = {
 export function formationSlotCoordinates(
   formationId: string,
 ): SlotCoordinate[] | undefined {
-  return SLOT_COORDINATES[formationId]
+  // Own property check: a plain lookup on "constructor" or "toString" would
+  // return an inherited function, which is truthy but not a coordinate table.
+  return Object.hasOwn(SLOT_COORDINATES, formationId)
+    ? SLOT_COORDINATES[formationId]
+    : undefined
 }
 
 export function sumBasisPoints(formation: Formation): number {
