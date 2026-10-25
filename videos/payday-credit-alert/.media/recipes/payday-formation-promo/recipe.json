@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "payday-formation-promo",
+  "workflow": "general-video",
+  "approved_at": "2026-10-25T16:24:53.609Z",
+  "source_project": "payday-credit-alert",
+  "destination": "x-feed-wide",
+  "aspect": "2560x1080",
+  "style_preset": "cobalt-grid"
+}

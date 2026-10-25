@@ -1,0 +1,277 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face {
+          font-family: "Space Grotesk";
+          font-style: normal;
+          font-weight: 300 700;
+          font-display: block;
+          src: url("assets/fonts/sg-latin.woff2") format("woff2");
+          unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+            U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+            U+2212, U+2215, U+FEFF, U+FFFD;
+        }
+        @font-face {
+          font-family: "Space Grotesk";
+          font-style: normal;
+          font-weight: 300 700;
+          font-display: block;
+          src: url("assets/fonts/sg-latin-ext.woff2") format("woff2");
+          unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+            U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+            U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+        }
+        #root {
+          position: absolute;
+          inset: 0;
+          background-color: #101010;
+          background-image:
+            linear-gradient(rgba(250, 250, 250, 0.055) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(250, 250, 250, 0.055) 1px, transparent 1px);
+          background-size: 2cqw 2cqw;
+          container-type: size;
+          font-family: "Space Grotesk", system-ui, sans-serif;
+          color: #fafafa;
+          overflow: hidden;
+        }
+        .rule-top {
+          position: absolute;
+          top: 1.7cqh;
+          left: 3.2cqw;
+          right: 3.2cqw;
+          height: 0.14cqw;
+          background: rgba(250, 250, 250, 0.6);
+        }
+        .rule-bottom {
+          position: absolute;
+          bottom: 1.7cqh;
+          left: 3.2cqw;
+          right: 3.2cqw;
+          height: 0.14cqw;
+          background: rgba(250, 250, 250, 0.6);
+        }
+        .alert-meta {
+          position: absolute;
+          top: 27cqh;
+          left: 9cqw;
+          font-size: 2.8cqh;
+          font-weight: 500;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: rgba(250, 250, 250, 0.7);
+          will-change: transform;
+        }
+        .remaining-label {
+          position: absolute;
+          top: 34cqh;
+          left: 9cqw;
+          font-size: 2.8cqh;
+          font-weight: 500;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: rgba(250, 250, 250, 0.6);
+        }
+        /* the shrinking amount — one focal, and it is the only volt at rest.
+           Sits on frame 1's figure exactly (9cqw / 41.5cqh / 14cqh), so the
+           cut drops the card and the number does not move. */
+        .amount {
+          position: absolute;
+          top: 41.5cqh;
+          left: 9cqw;
+          transform-origin: 0% 50%;
+          font-size: 14cqh;
+          font-weight: 700;
+          line-height: 0.92;
+          letter-spacing: -0.02em;
+          font-variant-numeric: tabular-nums;
+          color: #f5ff6b;
+          will-change: transform;
+        }
+        /*
+          The five hands: one system, not scatter. Every block the same width
+          and padding, snapped to the chalk grid, marching across the frame on
+          an alternating baseline. The disorder is timed here — arrival edge,
+          stagger, overshoot — never drawn into the layout.
+        */
+        .grab {
+          position: absolute;
+          width: 16cqw;
+          padding: 2.2cqw 2.4cqw;
+          background: #141414;
+          border: 0.2cqw solid rgba(250, 250, 250, 0.18);
+          border-radius: 1.2cqw;
+          will-change: transform;
+        }
+        .grab .lab {
+          font-size: 2.8cqh;
+          font-weight: 500;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: rgba(250, 250, 250, 0.7);
+        }
+        .grab .amt {
+          margin-top: 1cqh;
+          font-size: 4.6cqh;
+          font-weight: 700;
+          font-variant-numeric: tabular-nums;
+          letter-spacing: -0.015em;
+        }
+        .g-rent {
+          top: 60cqh;
+          left: 6cqw;
+        }
+        .g-debt {
+          top: 70cqh;
+          left: 23.5cqw;
+        }
+        .g-family {
+          top: 60cqh;
+          left: 41cqw;
+        }
+        .g-friday {
+          top: 70cqh;
+          left: 58.5cqw;
+        }
+        .g-data {
+          top: 60cqh;
+          left: 76cqw;
+        }
+        /* the answer sits where frame 1's hook sat: same column, same role.
+           Hook left, promise right, one row apart across the cut. */
+        .claim {
+          position: absolute;
+          top: 40cqh;
+          left: 57cqw;
+          width: 36cqw;
+          font-size: 7.8cqh;
+          font-weight: 700;
+          line-height: 1.05;
+          letter-spacing: -0.015em;
+          will-change: transform;
+        }
+      </style>
+
+      <div data-hf-id="hf-i9uf"
+        id="root"
+        data-composition-id="02-grab"
+        data-width="2560"
+        data-height="1080"
+      >
+        <div data-hf-id="hf-is4o" class="rule-top"></div>
+        <div data-hf-id="hf-sm62" class="rule-bottom"></div>
+
+        <div data-hf-id="hf-i8p2" class="alert-meta" id="f2-meta">Credited · 10 Oct · 09:41 · Salary</div>
+        <div data-hf-id="hf-uhwb" class="remaining-label" id="f2-label">Left by the 20th</div>
+
+        <div data-hf-id="hf-p21o" class="amount" id="f2-amount">₦1,240,000</div>
+
+        <div data-hf-id="hf-pzqb" class="grab g-rent" id="f2-g0" data-layout-allow-overlap data-layout-allow-overflow>
+          <div data-hf-id="hf-pnfm" class="lab">Rent</div>
+          <div data-hf-id="hf-6k9p" class="amt">₦450,000</div>
+        </div>
+        <div data-hf-id="hf-hjic" class="grab g-debt" id="f2-g1" data-layout-allow-overlap data-layout-allow-overflow>
+          <div data-hf-id="hf-m9d0" class="lab">Debt</div>
+          <div data-hf-id="hf-77q7" class="amt">₦180,000</div>
+        </div>
+        <div data-hf-id="hf-xzmi" class="grab g-family" id="f2-g2" data-layout-allow-overlap data-layout-allow-overflow>
+          <div data-hf-id="hf-32vl" class="lab">Family</div>
+          <div data-hf-id="hf-jf96" class="amt">₦150,000</div>
+        </div>
+        <div data-hf-id="hf-qpdg" class="grab g-friday" id="f2-g3" data-layout-allow-overlap data-layout-allow-overflow>
+          <div data-hf-id="hf-3x0a" class="lab">Friday</div>
+          <div data-hf-id="hf-9aas" class="amt">₦80,000</div>
+        </div>
+        <div data-hf-id="hf-x6bc" class="grab g-data" id="f2-g4" data-layout-allow-overlap data-layout-allow-overflow>
+          <div data-hf-id="hf-f4el" class="lab">Data</div>
+          <div data-hf-id="hf-wi2t" class="amt">₦25,000</div>
+        </div>
+
+        <div data-hf-id="hf-u0rp" class="claim" id="f2-claim">Every naira has a position.</div>
+      </div>
+
+      <script>
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+
+        const group = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+        const STAGE_W = 2560;
+        const V_TOP = 1240000;
+        const V_END = 355000;
+        const S_TOP = 1;
+        const S_END = 0.84;
+        const DRIVER_DUR = 0.55;
+        const FADE_IN_SHARPNESS = 5;
+
+        // Arrival order is big loss first, so the shrink accelerates the read.
+        // dir: -1 enters from the left edge, +1 from the right.
+        const GRABS = [
+          { el: "f2-g0", dir: -1, at: 0.8, from: 1240000, to: 790000 },
+          { el: "f2-g1", dir: 1, at: 1.6, from: 790000, to: 610000 },
+          { el: "f2-g2", dir: -1, at: 2.4, from: 610000, to: 460000 },
+          { el: "f2-g3", dir: 1, at: 3.2, from: 460000, to: 380000 },
+          { el: "f2-g4", dir: 1, at: 4.0, from: 380000, to: 355000 },
+        ];
+
+        const amountEl = document.getElementById("f2-amount");
+
+        tl.fromTo(
+          "#f2-meta",
+          { y: 10, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.4, ease: "power2.out" },
+          0.1,
+        );
+        tl.fromTo(
+          "#f2-label",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.4, ease: "power1.out" },
+          0.35,
+        );
+
+        // One driver per grab derives both the arrival and the depletion, so
+        // the amount visibly loses ground *because* the hand landed on it.
+        GRABS.forEach((g) => {
+          const node = document.getElementById(g.el);
+          const startX = g.dir * STAGE_W;
+          node.style.transform = `translate(${startX}px, 0px) scale(0.9)`;
+          node.style.opacity = "0";
+
+          const d = { p: 0 };
+          tl.to(
+            d,
+            {
+              p: 1,
+              duration: DRIVER_DUR,
+              ease: "power3.out",
+              onUpdate: () => {
+                const p = d.p;
+                node.style.transform = `translate(${startX * (1 - p)}px, 0px) scale(${0.9 + 0.1 * p})`;
+                node.style.opacity = String(Math.min(1, p * FADE_IN_SHARPNESS));
+
+                const v = g.from + (g.to - g.from) * p;
+                const s = S_END + (S_TOP - S_END) * ((v - V_END) / (V_TOP - V_END));
+                amountEl.textContent = `₦${group(Math.round(v))}`;
+                amountEl.style.transform = `scale(${s})`;
+              },
+            },
+            g.at,
+          );
+        });
+
+        tl.fromTo(
+          "#f2-claim",
+          { scale: 0.88, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 0.6, ease: "power3.out" },
+          4.4,
+        );
+
+        window.__timelines["02-grab"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

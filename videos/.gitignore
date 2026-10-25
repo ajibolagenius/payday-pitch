@@ -1,0 +1,13 @@
+# HyperFrames working state — tool bookkeeping, regenerated on the next run.
+.hyperframes/
+.thumbnails/
+.waveform-cache/
+
+# Rendered video: reproducible with `pnpm --dir <project> run render`.
+# The key graphics under assets/key-graphic/ ARE versioned because the still
+# export is hand-finished (the run bar is painted out), not a pure render.
+renders/
+
+# Recipe archives that `recipe.mjs freeze` leaves behind when a recipe is
+# re-frozen. The live version is what the next run reads.
+**/.media/recipes/*@v*/

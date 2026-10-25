@@ -1,0 +1,200 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face {
+          font-family: "Space Grotesk";
+          font-style: normal;
+          font-weight: 300 700;
+          font-display: block;
+          src: url("assets/fonts/sg-latin.woff2") format("woff2");
+          unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+            U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+            U+2212, U+2215, U+FEFF, U+FFFD;
+        }
+        @font-face {
+          font-family: "Space Grotesk";
+          font-style: normal;
+          font-weight: 300 700;
+          font-display: block;
+          src: url("assets/fonts/sg-latin-ext.woff2") format("woff2");
+          unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+            U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+            U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+        }
+        #root {
+          position: absolute;
+          inset: 0;
+          background-color: #101010;
+          background-image:
+            linear-gradient(rgba(250, 250, 250, 0.055) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(250, 250, 250, 0.055) 1px, transparent 1px);
+          background-size: 2cqw 2cqw;
+          container-type: size;
+          font-family: "Space Grotesk", system-ui, sans-serif;
+          color: #fafafa;
+          overflow: hidden;
+        }
+        .rule-top {
+          position: absolute;
+          top: 1.7cqh;
+          left: 3.2cqw;
+          right: 3.2cqw;
+          height: 0.14cqw;
+          background: rgba(250, 250, 250, 0.6);
+        }
+        .rule-bottom {
+          position: absolute;
+          bottom: 1.7cqh;
+          left: 3.2cqw;
+          right: 3.2cqw;
+          height: 0.14cqw;
+          background: rgba(250, 250, 250, 0.6);
+        }
+        /* alert-card: flat plane, no shadow — elevation is the border only */
+        .alert {
+          position: absolute;
+          top: 28cqh;
+          left: 6cqw;
+          width: 44cqw;
+          padding: 2.6cqw 3cqw;
+          background: #141414;
+          border: 0.2cqw solid rgba(250, 250, 250, 0.18);
+          border-radius: 2.4cqw;
+          will-change: transform;
+        }
+        .alert-meta {
+          font-size: 2.8cqh;
+          font-weight: 500;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: rgba(250, 250, 250, 0.7);
+          will-change: transform;
+        }
+        .alert-figure {
+          display: block;
+          transform-origin: 0% 50%;
+          font-size: 14cqh;
+          font-weight: 700;
+          line-height: 0.92;
+          letter-spacing: -0.02em;
+          font-variant-numeric: tabular-nums;
+          color: #f5ff6b;
+          margin-top: 1.6cqw;
+          will-change: transform;
+        }
+        .alert-sub {
+          font-size: 3.5cqh;
+          font-weight: 400;
+          color: rgba(250, 250, 250, 0.75);
+          margin-top: 1.8cqw;
+          will-change: transform;
+        }
+        .hook {
+          position: absolute;
+          top: 40cqh;
+          left: 57cqw;
+          width: 36cqw;
+          font-size: 7.8cqh;
+          font-weight: 700;
+          line-height: 1.05;
+          letter-spacing: -0.015em;
+          will-change: transform;
+        }
+      </style>
+
+      <div data-hf-id="hf-hv42"
+        id="root"
+        data-composition-id="01-alert"
+        data-width="2560"
+        data-height="1080"
+      >
+        <div data-hf-id="hf-is4o" class="rule-top"></div>
+        <div data-hf-id="hf-sm62" class="rule-bottom"></div>
+
+        <div data-hf-id="hf-njna" class="alert" id="f1-card">
+          <div data-hf-id="hf-i3d6" class="alert-meta" id="f1-meta">Credited · 10 Oct · 09:41</div>
+          <div data-hf-id="hf-pvov" class="alert-figure" id="f1-figure">₦<span data-hf-id="hf-imsy" id="f1-amount">1,240,000</span></div>
+          <div data-hf-id="hf-lgfm" class="alert-sub" id="f1-sub">Salary · Account •••• 4182</div>
+        </div>
+
+        <div data-hf-id="hf-2tdn" class="hook" id="f1-hook">Gone by the 15th.</div>
+      </div>
+
+      <script>
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+
+        // Deterministic thousands grouping — toLocaleString() reads the host
+        // locale, which is not the same input twice across a seeked render.
+        const group = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+        const TARGET = 1240000;
+        const COUNT_AT = 0.35;
+        const COUNT_DUR = 1.7;
+        const START_SCALE = 0.55;
+
+        const amountEl = document.getElementById("f1-amount");
+        const state = { v: 0 };
+
+        // spring-pop-entrance, minus the fade: the alert has already landed
+        // when the film starts, so frame 0 is never empty ground.
+        tl.fromTo(
+          "#f1-card",
+          { scale: 0.965 },
+          { scale: 1, duration: 0.5, ease: "power3.out" },
+          0,
+        );
+        tl.fromTo(
+          "#f1-meta",
+          { y: 10, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.4, ease: "power2.out" },
+          0.5,
+        );
+
+        // counting-dynamic-scale — the figure counts up and grows into its
+        // final size on one shared ease. Text only in onUpdate; the size is a
+        // transform, never font-size.
+        tl.to(
+          state,
+          {
+            v: TARGET,
+            duration: COUNT_DUR,
+            ease: "power3.out",
+            onUpdate: () => {
+              amountEl.textContent = group(Math.round(state.v));
+            },
+          },
+          COUNT_AT,
+        );
+        tl.fromTo(
+          "#f1-figure",
+          { scale: START_SCALE },
+          { scale: 1, duration: COUNT_DUR, ease: "power3.out" },
+          COUNT_AT,
+        );
+
+        tl.fromTo(
+          "#f1-sub",
+          { y: 10, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.4, ease: "power2.out" },
+          2.0,
+        );
+        // The hook is the beat's last word and the film's first claim: it needs
+        // its 1.75 s on screen before the cut, so it lands as the count closes.
+        tl.fromTo(
+          "#f1-hook",
+          { scale: 0.86, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 0.55, ease: "power3.out" },
+          2.25,
+        );
+
+        window.__timelines["01-alert"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

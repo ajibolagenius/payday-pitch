@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "preferences": {
+    "destination": {
+      "value": "x-feed-wide",
+      "confirmed_in": ["payday-credit-alert"],
+      "updated_at": "2026-10-25T16:23:56.615Z"
+    },
+    "flow": {
+      "value": "companion",
+      "confirmed_in": ["payday-credit-alert"],
+      "updated_at": "2026-10-25T13:55:59.640Z"
+    },
+    "storyboard": {
+      "value": "yes",
+      "confirmed_in": ["payday-credit-alert"],
+      "updated_at": "2026-10-25T13:55:59.671Z"
+    },
+    "style_preset.general-video": {
+      "value": "cobalt-grid",
+      "confirmed_in": ["payday-credit-alert"],
+      "updated_at": "2026-10-25T13:55:59.701Z"
+    },
+    "aspect": {
+      "value": "2560x1080",
+      "confirmed_in": ["payday-credit-alert"],
+      "updated_at": "2026-10-25T16:23:56.665Z"
+    }
+  },
+  "sightings": {}
+}
