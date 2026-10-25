@@ -1,7 +1,7 @@
 # 5. Design system and UI foundation
 
 **Date**: 2026-10-22
-**Status**: In Progress
+**Status**: In Progress (its structure stands; the palette, type, and dark default it specifies are superseded by [0009](0009-visual-identity-refresh.md))
 
 ## Summary
 

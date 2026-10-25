@@ -33,7 +33,7 @@ export default async function AppHome() {
             board makes one yours. Same link styling as the shipped nav. */}
         <Link
           href="/app/tactics"
-          className="text-accent text-sm underline underline-offset-4"
+          className="text-accent-text text-sm underline underline-offset-4"
         >
           Tactics board
         </Link>
@@ -50,7 +50,7 @@ export default async function AppHome() {
             </p>
             <Link
               href="/app"
-              className="text-accent mt-3 inline-block text-sm underline underline-offset-4"
+              className="text-accent-text mt-3 inline-block text-sm underline underline-offset-4"
             >
               Reload
             </Link>

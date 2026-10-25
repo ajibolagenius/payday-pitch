@@ -14,7 +14,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 1   | Stack & architecture                 | Foundation | done        |
 | 2   | Coding standards & tooling           | Foundation | in-progress |
 | 3   | Data model                           | Foundation | in-progress |
-| 4   | Design system & UI foundation        | Foundation | in-progress |
+| 4   | Design system & visual identity      | Foundation | in-progress |
 | 5   | Sign in & accounts                   | Slice 1    | in-progress |
 | 6   | First match loop                     | Slice 1    | in-progress |
 | 7   | Tactics board                        | Slice 2    | done        |
@@ -28,6 +28,8 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 15  | Free formation calculator            | Slice 7    | planned     |
 | 16  | Landing page                         | Slice 7    | planned     |
 | 17  | Production plans & limits            | Slice 7    | planned     |
+| 18  | Matchday experience                  | Slice 4    | planned     |
+| 19  | Brand mark, wordmark & identity      | Foundation | planned     |
 
 ## Foundations
 
@@ -69,21 +71,46 @@ spec [0004](../specs/0004-data-model.md) · code in `supabase/migrations/`, `src
 - [ ] Verify it: `/check verify data model` (AC-1 to AC-10)
 - [x] Test it: `/test data model`
 
-### 4. Design system & UI foundation
+### 4. Design system & visual identity
 
-The visual language from the references in `~/docs/assets`: pitch green `#1B4638`, electric yellow `#F5FF6B`, near black surfaces, Space Grotesk, analytics style stat tiles and radar charts (UI_2), and the hand drawn football sticker style (DES_1 to DES_3). Includes the pitch view component every money screen uses.
-**Done when:** `design.md` covers type, color, spacing, and components; every color pair passes WCAG AA contrast (yellow text on light surfaces needs checking); base components handle focus, keyboard, and screen readers; the pitch view shows a formation with amounts.
-**Candidates to weigh:** Motion (animation library for the whole app) · DiceBear (generated player avatars in the sticker style) · Impeccable or Taste Skill (AI design skill, pick one) · sharp (one off script to generate manifest icons). Decided in spec 0005: Motion adopted, DiceBear declined, impeccable adopted, sharp adopted.
+The system shipped in spec 0005 (tokens, two layer theming, component kit, pitch view, sticker set) stays; its **skin is reopened**. The old look (pitch green `#1B4638`, electric yellow `#F5FF6B`, near black surfaces, Space Grotesk) is the single most AI-generated-app signature in the market: dark canvas, one neon accent, one grotesque. The new direction commands formality first and sport second.
 
-- [x] Design it (spec): `/architect design system & UI foundation`
-- [x] Build it: `/develop design system & UI foundation` (spec [0005](../specs/0005-design-system-ui-foundation.md))
+**Type:** Melodrama (high contrast display serif, 300 to 700) for headings and hero money figures, the voice of a private banking report · Switzer (neo grotesque, 100 to 900, true italics) for UI copy and body, the neutral precision the first pick was meant to give · Tabular (a family built for tabular figures, 300 to 700, italics) for every amount, so money columns align by design rather than by an OpenType toggle · Teko (condensed, 300 to 700) as an accent on the pitch only, for shirt numbers and formation labels. All four checked against the live Fontshare catalog on 2026-10-25 through `api.fontshare.com`, loaded through `next/font/local`, subset to the weights actually used because this app has to open fast on a Nigerian data plan.
+**Color:** paper first. Warm paper surfaces, deep forest as the brand hue, amber gold as the single money accent, terracotta and slate reserved for state. Dark is kept as a theme with its own written out token layer, no longer the default; the app opens on paper. Every pair passes WCAG AA in both themes, and the amber gold gets checked on paper, not only on near black.
+**Icons:** Phosphor replaces the vendored RuneIcons set across the whole app, including the pitch and stickers, using its regular and fill weights.
+**Motion:** unchanged. Motion stays the only animation library, and every animated property stays gated on `prefers-reduced-motion`.
+**Anti-slop rules** the refresh must hold, and `design.md` must state: no gradient headline text, no glassmorphism, no emoji as icons, no purple or blue-violet brand hue, no default shadcn radius or shadow left visible, no centered hero with three feature cards, no neon on near black, and no accent color used as body text. Banned families, all of them free on Fontshare and all of them the current AI default, so availability is not a reason to pick them: Inter, Space Grotesk, Poppins, Geist, Plus Jakarta Sans, Manrope, Outfit, Sora, Montserrat.
+**Done when:** `design.md` and the token layer in `src/app/globals.css` describe the new system; every screen in the UI inventory below renders on it and passes the AA gate in both themes; Phosphor replaces RuneIcons with no orphaned imports; the pitch view reads as the same product under the new skin; `pnpm check:hex` and the contrast test stay green.
+**Candidates to weigh:** Phosphor icons (adopted above, confirm the weight and licensing in the spec) · Zodiak and Gambetta as the fallback serifs if Melodrama reads too decorative at small sizes (both verified in the catalog, both with italics, which Melodrama lacks) · the Fontshare license for self hosting (every font on the service is free for personal and commercial use; confirm the current terms and vendor the files rather than hot linking the CDN) · Highcharts versus Recharts versus hand built SVG for the analytics tiles (Highcharts is commercial, spec 0005 already draws the pitch as SVG) · DiceBear, declined again in spec 0005, stays declined.
+
+- [x] Design it: `/architect design system & UI foundation` (spec [0005](../specs/0005-design-system-ui-foundation.md), the shipped system; its palette and type are superseded by the box below)
+- [x] Build it: `/develop design system & UI foundation` (spec 0005)
   - [x] Tokens, theming, shadcn base (AC-2, AC-7): spike, two layer token layer, dark default, type scale, ThemeToggle
   - [x] Starter component kit (AC-1, AC-2, AC-4): restyled primitives, MoneyText, StatTile
   - [x] Visual assets (AC-8): sticker set, RuneIcons vendoring, master SVG icons with the sharp generator
   - [x] Pitch view (AC-5, AC-6): slot coordinates in the domain, SVG field, bench strip, Motion layout transitions
   - [x] Demo route and contrast gates (AC-1, AC-3, AC-4): dev only page, token pair test, axe, keyboard and reduced motion checks, design.md
-- [ ] Verify it: `/check verify design system & UI foundation` (AC-1 to AC-8)
-- [x] Test it: `/test design system & UI foundation`
+- [x] Design it (spec): `/architect visual identity refresh` (spec [0009](../specs/0009-visual-identity-refresh.md), the refresh: type, palette, theme default, icon swap, anti-slop rules)
+- [x] Build it: `/develop visual identity refresh` (spec 0009, branch `feat/visual-identity-refresh`)
+  - [x] Type and tokens: Fontshare files vendored with the byte budget, `globals.css` two layer flip to paper first, light default, pair contract reshaped and green (AC-2 to AC-6)
+  - [x] Icon swap: Phosphor across app code, RuneIcons deleted, lucide confined to shadcn internals (AC-7)
+  - [x] Skin pass and e2e rewrite: pitch, every surface in the inventory, both themes, spec assertions moved onto the new identity (AC-8, AC-10, AC-11)
+  - [x] Peripheral color and gates: `brand-palette.ts` feeding emails, manifest, and app icons; `design.md` rewritten; full gate set (AC-1, AC-9, AC-11)
+- [ ] Verify it: `/check verify design system & visual identity` (spec 0005 AC-1 to AC-8 plus the refresh acceptance criteria)
+- [x] Test it: `/test design system & UI foundation` (refresh tests land with the new spec)
+
+### 19. Brand mark, wordmark & identity assets · needs a decision
+
+The mark shipped in spec 0009 is a gold football drawn as panel seams on a forest field. It says _football app_, which is the category, not the product, and at favicon size the seams collapse into a gear. The redraw says _your money lined up_: **dots in a real formation** on forest, gold for the ten outfield positions and paper (`#FFFDF8`) for the goalkeeper, the one position already secured. No ball, no crest, no naira sign. The naira stays out of the mark so the identity does not have to be redrawn when another currency arrives (Deferred), and it appears only in copy and amounts.
+**Two tiers, because eleven dots cannot shrink past 32 pixels.** Measured, not guessed: at 16px each dot of an eleven-dot formation is under one pixel and the shape is gone. So the system is a **primary mark**, three equal-spaced rows read from the top as a front three, a midfield three and a back four, with the paper keeper alone at the base, used at 48px and above, and a **reduced mark** of five dots, one per money zone, in the same stacked 3-2-1 rhythm with the same paper keeper at the base, used at 32px and under: favicon, tab bar, email footer.
+**Rows, not staggers.** The first drawing staggered each line off the centre by up to 62px against a row gap of about 100px, and the eye read eleven scattered dots instead of four units. Equal spacing inside each row and equal gaps between rows is what makes it a line-up; the formation is carried by the counts (3 / 3 / 4 / 1), not by offsets. Same palette, same grammar, same silhouette logic, so the two tiers read as one brand rather than two logos.
+**Voice:** quiet editorial. Melodrama sets the wordmark `Payday Pitch` in its 500 or 600 weight with tight tracking, sentence case, no all-caps sports shout; Switzer carries any supporting line; Teko stays a numeric face and never appears in the wordmark. One gold hairline is the only ornament. The mark and the wordmark must hold up alone, so the lockup is a convenience, not a crutch.
+**The dot grammar is the real deliverable, not the icon.** The same dot spacing becomes the loading state, the empty states, the share card backing (feature 18), the social card (features 15 and 16), and the pitch's own geometry, so the brand is one system rather than a picture pasted on a page. Its first full expression is the **line-up**: all eleven dots in a single row at one spacing, the paper keeper leading at the left. It is a secondary asset, not a mark, because it only survives at wide sizes: section divider, loading bar, wordmark underline, empty-state graphic.
+**Done when:** the primary mark reads as a formation at 512, 192, 64, and 48 pixels, and the reduced mark is the one used at 32 and 16, each checked as real rasterizations rather than a zoomed SVG; the maskable master scales its art to 0.72 or smaller, verified against the launcher viewport (a circle of radius 156 on the 512 canvas; at 0.72 the keeper, the deepest element, reaches radius 152, and at 0.76 it is cut) rather than against the 80 percent figure alone; `pnpm icons` regenerates the whole set from the new master SVGs with no manual PNG edits; `src/lib/brand-palette.ts` still holds the only hex values outside the artwork carve-out and `pnpm check:hex` passes; the wordmark renders through `next/font` with no fallback flash; light and dark versions of both marks exist and pass the contrast gate; the `/design-system` page shows both tiers at every size with the crop simulation next to them; the old ball is gone from the manifest, the emails, and the offline page.
+**Candidates to weigh:** satori or `@vercel/og` (server rendered social and share cards from the same SVG source) · Fontshare Tanker or Expose as a heavier display alternative if Melodrama reads too thin at wordmark size (both verified in the catalog) · a four-dot reduction (a front three over the keeper) if the 3-2-1 still reads as a dice face at 16px (measured: it dissolves into two gold bars above a white dot, which reads as tiers but not as five players) · Phosphor is explicitly not the mark's source; a brand glyph drawn from a Phosphor icon is the tell of a template identity.
+**Drawn proof:** `docs/assets/brand-candidate/` (gitignored scratch, kept to the chosen assets only: `mark-primary.svg` rasterized at 512/192/64, `mark-reduced.svg` at 32/16, `mark-maskable.svg` at 512, and `asset-lineup.svg` at 512 wide). Rejected arrangements were deleted, so the folder holds only what the spec starts from. It is a reference for the spec, not the shipped asset.
+
+- [ ] Design it (spec): `/architect brand mark & wordmark`
 
 ## Slice 1: First match (the core loop, also the walking skeleton)
 
@@ -159,6 +186,20 @@ The dashboard: match history month by month, planned versus actual per position,
 
 - [ ] Design it (spec): `/architect season view`
 
+### 18. Matchday experience
+
+What makes the app worth opening twice a month instead of once. Four mechanics, all built on data the earlier slices already store, none of them a points system or a badge wall.
+**The matchday ritual.** Logging a match is an event, not a form submit: the squad is announced, players slide into their slots, amounts land, and a thin whistle tone marks the moment (short audio through the Web Audio API, no library, off by default in settings, gated on reduced motion). The first log of a season and a full 100% allocation get a stronger celebration than a routine one.
+**Man of the Month.** When the forwards or goalkeeper hit their target for the month, the app names the position that earned it and says why in one line tied to the user's own numbers.
+**Team sheet card.** One tap turns this month's lineup into a shareable image (formation name, eleven positions, amounts, the user's handle), drawn from the same SVG the pitch view already renders, sized for WhatsApp status and X. No amounts leave the device unless the user chooses to include them, and a hidden toggle strips money for people who want to share the shape only.
+**Consistency and the season ladder.** Months in a formation, consecutive paydays logged, and progress toward the emergency fund's 3 to 6 months of defense, shown as a season bar rather than a streak counter that punishes a miss. A missed month reads as an injury, not a broken chain.
+**Transfer window.** Once per month, after the split is logged, the user can move money between positions mid-cycle; each move is recorded against the match and shown in planned versus actual.
+**Five season projection.** A view that takes the current formation and projects wealth five years out, then shows the same line under one aggressive change and one defensive change, with the assumptions on screen and a not financial advice notice. It reuses the forward line explanations from feature 12 and never quotes a live rate without a last updated date.
+**Done when:** logging a match plays the ritual and can be skipped without losing the log; the team sheet card downloads and shares with correct amounts and degrades to a text summary when the image fails; a user who logs three consecutive months sees the ladder advance and a user who misses one sees no punishment; a transfer window move appears in planned versus actual for the month it happened; the projection states its rate assumption and updates when the formation changes; every animated element honors `prefers-reduced-motion`; the sound is off by default and a settings toggle controls it.
+**Candidates to weigh:** howler.js (audio playback for the whistle and cheer, only if raw Web Audio proves too fiddly across browsers) · canvas-confetti (declined: Motion can do the celebration, and the anti-slop rules in feature 4 forbid the effect) · satori or `@vercel/og` (server side image generation for the team sheet card) · Motion plus (paid component set, only if the ritual needs something Motion free cannot do)
+
+- [ ] Design it (spec): `/architect matchday experience`
+
 ## Slice 5: Matchday rhythm
 
 ### 10. Payday reminders · needs a decision
@@ -223,6 +264,110 @@ Move off free tiers before real users' money data arrives: Vercel Pro with a har
 **Done when:** both paid plans are active with a spend cap set, the Resend domain passes SPF and DKIM, and no real user's data sits on a free tier project.
 
 - [ ] Do it: follow the checklist in spec [0001](../specs/0001-stack-architecture/index.md) `## Follow-up`
+
+## UI inventory
+
+Every surface the product needs, so the visual refresh in feature 4 has a checklist to skin and each later feature knows where it lands. **Built** means the route or component exists in `src/`; **planned** names the feature that owns it.
+
+### Pages and screens
+
+| Surface                                                      | Route                               | State                             |
+| ------------------------------------------------------------ | ----------------------------------- | --------------------------------- |
+| Marketing home                                               | `/`                                 | built, placeholder for feature 16 |
+| Sign in                                                      | `/sign-in`                          | built (feature 5)                 |
+| Sign up                                                      | `/sign-up`                          | built (feature 5)                 |
+| Email verification sent                                      | `/verify-email`                     | built (feature 5)                 |
+| Recover account                                              | `/recover`                          | built (feature 5)                 |
+| Reset password                                               | `/reset-password`                   | built (feature 5)                 |
+| Auth callback                                                | `/auth/callback`                    | built (feature 5)                 |
+| Home / this month                                            | `/app`                              | built (feature 6, 7)              |
+| First match walk (4 steps: income, costs, formation, review) | `/app` walk flow                    | built (feature 6)                 |
+| Tactics board                                                | `/app/tactics`                      | built (feature 7)                 |
+| Offline                                                      | `/offline`                          | built (feature 1)                 |
+| Design system proof page                                     | `/design-system` (dev only)         | built (feature 4)                 |
+| Season view dashboard                                        | `/app/season`                       | planned (feature 9)               |
+| Match history month list and detail                          | `/app/season/[month]`               | planned (feature 9)               |
+| Debts list, add, and payoff progress                         | `/app/debts`                        | planned (feature 8)               |
+| Goals list and detail                                        | `/app/goals`                        | planned (feature 12)              |
+| Forward line guidance                                        | `/app/forward-line`                 | planned (feature 12)              |
+| Settings (theme, reminders, sound, units)                    | `/app/settings`                     | planned (features 10, 14, 18)     |
+| Profile and income streams management                        | `/app/profile`                      | planned (features 3, 10)          |
+| Data export and account deletion                             | `/app/settings/data`                | planned (feature 14)              |
+| Free formation calculator (public, no account)               | `/calculator`                       | planned (feature 15)              |
+| Legal: privacy, terms, not financial advice                  | `/privacy`, `/terms`, `/disclaimer` | planned (feature 14)              |
+
+### Modals, sheets, and overlays
+
+| Surface                                                       | State                                                       |
+| ------------------------------------------------------------- | ----------------------------------------------------------- |
+| Add or edit an income stream                                  | built (feature 6)                                           |
+| Add or edit a fixed cost                                      | built (feature 6)                                           |
+| Formation preview on pick, with the unable to cover shortfall | built (feature 6)                                           |
+| First match pitch tour (Driver.js spotlight, one time)        | built (feature 6)                                           |
+| Save tactic, rename tactic, delete tactic confirm             | built (feature 7)                                           |
+| Coaching suggestion card and its apply action                 | built (feature 7)                                           |
+| Position share editor with the 100% lock                      | built (feature 7)                                           |
+| Log this month's match, and the confirmation ritual           | built (feature 6), ritual planned (feature 18)              |
+| Transfer window allocation mover                              | planned (feature 18)                                        |
+| Team sheet card preview and share                             | planned (feature 18)                                        |
+| Debt add or edit, with the monthly hit and shortfall          | planned (feature 8)                                         |
+| Goal add or edit                                              | planned (feature 12)                                        |
+| Reminder onboarding and per reminder opt out                  | planned (feature 10)                                        |
+| Consent at signup, and the not financial advice notice        | planned (feature 14)                                        |
+| Toasts (success, error, promise)                              | built (feature 4, sonner)                                   |
+| Tooltip and popover layer                                     | built (feature 4)                                           |
+| Global nav, mobile tab bar, and the app shell header          | built (feature 5 layout guard), tab bar planned (feature 9) |
+
+### Reusable components
+
+| Component                                                  | State                                                                                                                                                                  |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Button, Card, Input, Badge, Tabs, Dialog, Tooltip, Toaster | built (feature 4)                                                                                                                                                      |
+| MoneyText (every amount on screen)                         | built (feature 4)                                                                                                                                                      |
+| StatTile (label, figure, delta)                            | built (feature 4)                                                                                                                                                      |
+| ThemeToggle                                                | built (feature 4), light default shipped in spec 0009                                                                                                                  |
+| PitchView, PitchField, PlayerNode, zone math               | built (feature 4)                                                                                                                                                      |
+| Sticker set (hand drawn player art)                        | built (feature 4), re-painted in spec 0009                                                                                                                             |
+| Icon set                                                   | Phosphor is the app level set (spec 0009), lucide in shadcn internals only                                                                                             |
+| App mark, wordmark, and lockup                             | planned (feature 19): two tiers, the 11-dot formation primary and the 3-2-1 reduction, plus the single-row line-up asset, replacing the ball mark shipped in spec 0009 |
+| AmountField, EntryList, FormationPicker, PitchReview       | built (feature 6)                                                                                                                                                      |
+| TacticsBoard, SpotEditor, SuggestionCard, TacticList       | built (feature 7)                                                                                                                                                      |
+| AuthForm and its sign in, sign up, recover, reset variants | built (feature 5)                                                                                                                                                      |
+| Radar chart (position balance, UI_2 style)                 | planned (feature 9)                                                                                                                                                    |
+| Progress bar and fund months meter                         | planned (features 9, 7)                                                                                                                                                |
+| Planned versus actual bar pair                             | planned (feature 9)                                                                                                                                                    |
+| Sparkline and season trend line                            | planned (features 9, 18)                                                                                                                                               |
+| Projection chart with assumption caption                   | planned (feature 18)                                                                                                                                                   |
+| Empty state, loading skeleton, and error state primitives  | built per feature, still to promote onto the dot grammar (19)                                                                                                          |
+| Position legend and bench strip                            | built (feature 4)                                                                                                                                                      |
+| Share card canvas                                          | planned (feature 18)                                                                                                                                                   |
+
+## Tool list review
+
+The candidate tools from the research list, decided once so no later feature re-litigates them. Each feature's own `Candidates to weigh` line still wins if it names a tool again.
+
+**Adopted:** Driver.js (tours, spec 0007) · Phosphor Icons (replaces RuneIcons in the feature 4 refresh) · Fontshare Melodrama, Switzer, Tabular, Teko (the type system, all four verified in the live catalog) · Motion (already the only animation library) · sharp (icon generation) · react-email (auth email, spec 0006) · impeccable (design skill).
+
+**Fonts weighed and declined, all of them on the Fontshare catalog:** Clash Display and Clash Grotesk (the faces every Fontshare-using site reaches for, so they read as a template) · Satoshi and Chillax (pleasant, no authority for money) · Cabinet Grotesk (too quirky for a bank voice) · Bebas Neue and Oswald (the generic sports-jersey cliché) · JetBrains Mono (the dev-tool cliché, and this app's numbers deserve a purpose built face) · Poppins, Montserrat, Plus Jakarta Sans, Manrope, Outfit, Sora, Space Grotesk (the AI default set, banned in feature 4).
+
+**Declined, with the reason:**
+
+- **react-spring, anime.js, Theatre.js, Popmotion, GSAP, Lenis, barba.js, Locomotive Scroll** · Motion already owns animation in this stack and two libraries fighting over the same properties is the failure mode. GSAP and Lenis stay possible for the landing page only, as feature 16 already notes.
+- **Highcharts** · commercial license for a hobby-priced product; the pitch view proves hand built SVG is enough, and Recharts or visx is the fallback if a chart gets too hard to draw by hand.
+- **Animata.design** · copy-paste components in the old volt-on-black look; inspiration only.
+- **Motion+** · paid examples and components, nothing the app needs.
+- **DiceBear, Gravatar** · declined in spec 0005 and it stays declined; the hand drawn sticker set is the identity.
+- **MapLibre, luma.gl, Leaflet, Photon, OpenStreetMap, Mapbox** · there is no map in this product.
+- **Three.js, Konva, Fabric.js** · a 3D or canvas pitch is a slower path to the same screen the SVG pitch view already reaches. Only the share card in feature 18 might want a canvas, and satori is the cheaper answer.
+- **Tippy.js** · shadcn Tooltip already ships the accessible version.
+- **Split.js** · no resizable panes on a phone.
+- **libphonenumber-js** · no phone numbers anywhere in the product; revisit only if WhatsApp reminders (feature 10) need number validation.
+- **OpenWA** · unofficial WhatsApp gateway, the number ban risk is the whole reason feature 10 names WhatsApp Cloud API instead.
+- **telegraf.js** · a Telegram bot is one channel in feature 10's decision, not a foundation.
+- **gluestack, Nativewind** · React Native and Tailwind-for-native; this is a web app. Capacitor stays the native path in Deferred.
+- **Dexie.js, RxDB, WatermelonDB** · offline match logging, already Deferred in the scope.
+- **Convex, Turso, Pinecone, Milvus, Temporal, Apinator, Upstash (as a database)** · Supabase is the backend; a vector database and a durable execution engine solve problems this product does not have. Upstash QStash remains live as feature 10's scheduler fallback.
+- **Voltra, Tauri, Surge, tldr pages, Material for MkDocs, k1LoW/mo, OverType, free-apis.github.io, Cartesian Sonic-3, HyperFrames, Remotion** · not applicable: an internal component library, desktop shells, static hosting, docs tooling, a markdown reader, a markdown editor, an API directory, a TTS voice, and video generation. HyperFrames and Remotion become relevant only if marketing wants a launch film, which is not a feature here.
 
 ## Deferred
 

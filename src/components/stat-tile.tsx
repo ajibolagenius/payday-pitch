@@ -1,4 +1,4 @@
-import { ArrowDownIcon, ArrowUpIcon } from "lucide-react"
+import { ArrowDown, ArrowUp } from "@phosphor-icons/react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
@@ -21,7 +21,7 @@ export function StatTile({
         <p className="text-muted-foreground text-sm font-medium">{label}</p>
       </CardHeader>
       <CardContent className="p-0">
-        <p className="text-card-foreground text-5xl font-bold tracking-tight">
+        <p className="text-card-foreground text-4xl font-bold tracking-tight">
           {value}
         </p>
         {delta ? (
@@ -32,9 +32,9 @@ export function StatTile({
             )}
           >
             {delta.direction === "up" ? (
-              <ArrowUpIcon aria-hidden />
+              <ArrowUp weight="regular" size={16} aria-hidden />
             ) : (
-              <ArrowDownIcon aria-hidden />
+              <ArrowDown weight="regular" size={16} aria-hidden />
             )}
             {delta.value}
           </p>

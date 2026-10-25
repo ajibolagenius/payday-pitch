@@ -91,7 +91,7 @@ function TacticRow({
             aria-current={active ? "page" : undefined}
             className={cn(
               "min-w-0 flex-1 truncate font-medium underline underline-offset-4",
-              active ? "text-accent" : "text-foreground",
+              active ? "text-accent-text" : "text-foreground",
             )}
           >
             {tactic.name}

@@ -48,17 +48,25 @@ export function PlayerNode({
     <span
       aria-label={`${player.label}, ${ROLE_WORD[player.role]}, ${formatKoboSpoken({ kobo: player.amountMinorUnits, currency: player.currency })}`}
       className={cn(
-        "flex flex-col items-center gap-0.5 rounded-md border border-white/30 bg-[var(--surface-black)]/75 px-1 py-0.5 text-[var(--paper)] backdrop-blur-sm",
-        selected && "border-[var(--volt)] bg-[var(--surface-black)]",
+        "flex flex-col items-center gap-0.5 rounded-md border border-white/30 bg-[var(--night)]/75 px-1 py-0.5 text-[var(--paper-50)]",
+        selected && "border-white/70",
       )}
     >
       {player.shirtNumber !== null ? (
-        <span className="grid size-6 place-items-center rounded-full bg-[var(--volt)] text-[0.6rem] font-bold text-[var(--surface-black)]">
+        // Teko shirt number on the accent plate (spec 0009): gold-200 clears
+        // 3:1 on both grass stripes in each theme; fill weight marks the
+        // selected state (plate plus border, never color alone).
+        <span
+          className={cn(
+            "font-accent bg-accent text-accent-foreground grid size-6 place-items-center rounded-full text-[0.95rem] leading-none font-bold",
+            selected && "border-2 border-white/60",
+          )}
+        >
           {player.shirtNumber}
         </span>
       ) : (
         // The bench node has no shirt number: it names its purpose instead.
-        <span className="text-[0.6rem] leading-none font-medium">
+        <span className="font-accent text-[0.7rem] leading-none font-medium">
           {player.label}
         </span>
       )}
@@ -75,7 +83,15 @@ export function PlayerNode({
       type="button"
       onClick={() => onSelect?.(player.slotKey)}
       aria-pressed={selected ?? false}
-      className="cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[var(--volt)]"
+      // Grass is dark in both themes, so white reads there; the bench sits on
+      // bg-muted, which is light paper in the light theme, so it takes the
+      // theme ring token (gold-700 light, gold-200 dark) instead.
+      className={cn(
+        "cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-offset-0",
+        player.role === "BENCH"
+          ? "focus-visible:ring-ring"
+          : "focus-visible:ring-white",
+      )}
     >
       {badge}
     </button>

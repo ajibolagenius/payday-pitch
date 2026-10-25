@@ -52,7 +52,7 @@ export function SignUpForm() {
       <div className="text-sm">
         <Link
           href="/sign-in"
-          className="text-accent underline underline-offset-4"
+          className="text-accent-text underline underline-offset-4"
         >
           Already have an account? Sign in
         </Link>

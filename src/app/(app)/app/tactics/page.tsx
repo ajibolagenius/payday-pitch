@@ -55,7 +55,7 @@ export default async function TacticsPage({
             </p>
             <Link
               href="/app/tactics"
-              className="text-accent mt-3 inline-block text-sm underline underline-offset-4"
+              className="text-accent-text mt-3 inline-block text-sm underline underline-offset-4"
             >
               Reload
             </Link>
@@ -68,7 +68,7 @@ export default async function TacticsPage({
             </p>
             <Link
               href="/app/tactics"
-              className="text-accent mt-3 inline-block text-sm underline underline-offset-4"
+              className="text-accent-text mt-3 inline-block text-sm underline underline-offset-4"
             >
               Open the board
             </Link>

@@ -29,12 +29,12 @@ const config = [
   {
     // Spec 0005: color lives in globals.css tokens, never as a literal in code.
     files: ["src/**/*.{ts,tsx}"],
-    // Pitch and sticker artwork own their literal colors; brand.ts holds the
+    // Pitch and sticker artwork own their literal colors; brand-palette.ts holds the
     // one value browser chrome needs as a literal (manifest, theme color).
     ignores: [
       "src/components/pitch/**",
       "src/components/stickers/**",
-      "src/lib/brand.ts",
+      "src/lib/brand-palette.ts",
     ],
     rules: {
       "no-restricted-syntax": [

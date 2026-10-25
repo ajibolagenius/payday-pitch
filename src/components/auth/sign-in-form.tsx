@@ -57,7 +57,7 @@ export function SignInForm({ next }: { next?: string }) {
             <button
               type="submit"
               formAction={resendAction}
-              className="text-accent text-sm underline underline-offset-4"
+              className="text-accent-text text-sm underline underline-offset-4"
             >
               Send the confirmation link again
             </button>
@@ -76,13 +76,13 @@ export function SignInForm({ next }: { next?: string }) {
       <div className="flex items-center justify-between text-sm">
         <Link
           href="/recover"
-          className="text-accent underline underline-offset-4"
+          className="text-accent-text underline underline-offset-4"
         >
           Forgot password?
         </Link>
         <Link
           href="/sign-up"
-          className="text-accent underline underline-offset-4"
+          className="text-accent-text underline underline-offset-4"
         >
           Create an account
         </Link>

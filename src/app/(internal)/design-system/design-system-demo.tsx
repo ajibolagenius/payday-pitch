@@ -1,18 +1,19 @@
 "use client"
 
-import { useState } from "react"
+import { useSyncExternalStore, useState } from "react"
+import { useTheme } from "next-themes"
 import { toast } from "sonner"
 import { MoneyText } from "@/components/money-text"
 import { StatTile } from "@/components/stat-tile"
 import { ThemeToggle } from "@/components/theme-toggle"
 import {
-  ClockIcon,
-  FlagIcon,
-  ShieldIcon,
-  StarIcon,
-  TrendingUpIcon,
-  WalletIcon,
-} from "@/components/icons/runeicons"
+  Clock,
+  Flag,
+  ShieldCheck,
+  Star,
+  TrendUp,
+  Wallet,
+} from "@phosphor-icons/react"
 import {
   BallSticker,
   BootsSticker,
@@ -50,12 +51,43 @@ const SAMPLE_INCOME_KOBO = 1_200_000
 const SAMPLE_FIXED_COSTS_KOBO = 1_200_000
 const CURRENCY = "NGN"
 
-const TOKEN_PAIRS = CONTRAST_PAIRS.map((pair) => ({
-  label: `${pair.foreground} / ${pair.background}`,
+const TOKEN_PAIRS = CONTRAST_PAIRS.map((pair, index) => ({
+  key: `${pair.background}/${pair.foreground}/${pair.theme ?? "both"}/${index}`,
+  label: `${pair.foreground} on ${pair.background}`,
   bg: pair.background,
   fg: pair.foreground,
+  theme: pair.theme ?? "both",
   note: pair.use,
+  over: pair.over,
+  text: pair.text,
 }))
+
+const TYPE_ROLES = [
+  {
+    name: "Melodrama",
+    variable: "--font-heading",
+    weights: "300 to 700",
+    use: "Headings and display figures. Never italic, it has no italic cut.",
+  },
+  {
+    name: "Switzer",
+    variable: "--font-sans",
+    weights: "400 to 700 plus italic",
+    use: "UI copy, body, labels, captions, formation chips.",
+  },
+  {
+    name: "Tabular",
+    variable: "--font-money",
+    weights: "400 to 700",
+    use: "Every amount, through .money on MoneyText.",
+  },
+  {
+    name: "Teko",
+    variable: "--font-accent",
+    weights: "400 to 700",
+    use: "Pitch surfaces only: shirt numbers, bench label, zone headings.",
+  },
+]
 
 const TYPE_SCALE = [
   { utility: "text-xs", size: "12px", use: "Captions, labels" },
@@ -91,6 +123,25 @@ export function DesignSystemDemo() {
   const [formationIndex, setFormationIndex] = useState(0)
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
   const formation = FORMATIONS[formationIndex]
+  // Swatches only make sense in the theme they are declared for, and the page
+  // itself renders in one theme at a time (spec 0009 theme-aware pairs).
+  // next-themes knows the resolved theme only after mount, so the theme
+  // specific rows appear then, keeping hydration identical on both passes.
+  const { resolvedTheme } = useTheme()
+  const subscribeEmpty = () => () => {}
+  const mounted = useSyncExternalStore(
+    subscribeEmpty,
+    () => true,
+    () => false,
+  )
+  // next-themes knows the stored choice on the client's first render but not
+  // on the server pass, so `theme` stays light until mount: reading
+  // resolvedTheme before mount desynchronizes hydration and React leaves the
+  // server rendered styles in the DOM.
+  const theme = mounted && resolvedTheme === "dark" ? "dark" : "light"
+  const visiblePairs = TOKEN_PAIRS.filter(
+    (pair) => pair.theme === "both" || (mounted && pair.theme === theme),
+  )
 
   const amounts = formation.positions.map((p) => ({
     amountMinorUnits: Math.round((p.basisPoints * SAMPLE_INCOME_KOBO) / 10000),
@@ -122,17 +173,24 @@ export function DesignSystemDemo() {
           description="Semantic tokens only. Each card shows a foreground on its background; both must clear WCAG AA, and a unit test on the token values enforces it."
         >
           <div className="grid gap-3 sm:grid-cols-2">
-            {TOKEN_PAIRS.map((pair) => (
+            {visiblePairs.map((pair) => (
               <div
-                key={pair.label}
+                key={pair.key}
                 className="border-border rounded-lg border p-4"
                 style={{
-                  backgroundColor: `var(--${pair.bg})`,
-                  color: `var(--${pair.fg})`,
+                  backgroundColor: pair.over
+                    ? `color-mix(in oklab, var(--${pair.bg}) ${pair.over.alpha * 100}%, var(--${pair.over.token}))`
+                    : `var(--${pair.bg})`,
+                  color: `var(--${pair.text?.[theme] ?? pair.fg})`,
                 }}
               >
-                <p className="font-mono text-xs">{pair.label}</p>
-                <p className="mt-2 text-lg font-semibold">₦1,200.00 covered</p>
+                <p className="font-mono text-xs">
+                  {pair.label}
+                  <span className="ml-2 uppercase">{pair.theme}</span>
+                </p>
+                <p className="mt-2 text-lg font-semibold">
+                  <span className="money">₦1,200.00</span> covered
+                </p>
                 <p className="text-sm">{pair.note}</p>
               </div>
             ))}
@@ -151,8 +209,22 @@ export function DesignSystemDemo() {
 
         <Section
           title="Type"
-          description="Space Grotesk at 400, 500 and 700, on a 1.25 modular scale, mobile first."
+          description="Four vendored Fontshare faces on a 1.25 modular scale, mobile first. Amounts always ride Tabular through the .money class."
         >
+          <div className="mb-6 grid gap-3 sm:grid-cols-2">
+            {TYPE_ROLES.map((role) => (
+              <div
+                className="border-border rounded-lg border p-3"
+                key={role.name}
+              >
+                <p className="text-lg font-semibold">{role.name}</p>
+                <p className="text-muted-foreground font-mono text-xs">
+                  {role.variable} · {role.weights}
+                </p>
+                <p className="text-muted-foreground mt-1 text-sm">{role.use}</p>
+              </div>
+            ))}
+          </div>
           <div className="space-y-3">
             {TYPE_SCALE.map((step) => (
               <div
@@ -187,11 +259,13 @@ export function DesignSystemDemo() {
             <Button size="sm">Small</Button>
             <Button size="lg">Large</Button>
             <Button size="icon" aria-label="Saved to roster">
-              <StarIcon />
+              <Star weight="fill" size={20} />
             </Button>
             <Badge>New</Badge>
             <Badge variant="secondary">Covered</Badge>
-            <Badge variant="destructive">Short by ₦4,000</Badge>
+            <Badge variant="destructive">
+              Short by <span className="money">₦4,000</span>
+            </Badge>
             <Badge variant="outline">4-4-2</Badge>
           </div>
         </Section>
@@ -308,7 +382,7 @@ export function DesignSystemDemo() {
 
         <Section
           title="Stickers and icons"
-          description="Hand drawn pen line pieces for celebration and warning moments, plus the vendored icon set. Both take color from the text token."
+          description="Hand drawn pen line pieces for celebration and warning moments, plus the app level Phosphor set in regular and fill weights. Both take color from the text token."
         >
           <div className="text-foreground flex flex-wrap items-end gap-6">
             <div className="flex flex-col items-center gap-1">
@@ -328,7 +402,7 @@ export function DesignSystemDemo() {
               <span className="text-muted-foreground text-xs">goal net</span>
             </div>
             <div className="flex flex-col items-center gap-1">
-              <SparkleSticker className="size-12 text-[var(--volt)]" />
+              <SparkleSticker className="size-12 text-[var(--gold-300)]" />
               <span className="text-muted-foreground text-xs">sparkle</span>
             </div>
             <div className="flex flex-col items-center gap-1">
@@ -344,13 +418,19 @@ export function DesignSystemDemo() {
               </span>
             </div>
           </div>
-          <div className="text-muted-foreground mt-6 flex flex-wrap gap-6">
-            <ShieldIcon />
-            <WalletIcon />
-            <TrendingUpIcon />
-            <FlagIcon />
-            <ClockIcon />
-            <StarIcon />
+          <div className="text-muted-foreground mt-6 flex flex-wrap items-center gap-6">
+            <ShieldCheck weight="regular" size={24} />
+            <Wallet weight="regular" size={24} />
+            <TrendUp weight="regular" size={24} />
+            <Flag weight="regular" size={24} />
+            <Clock weight="regular" size={24} />
+            <Star weight="regular" size={24} />
+            <ShieldCheck weight="fill" size={24} />
+            <Wallet weight="fill" size={24} />
+            <TrendUp weight="fill" size={24} />
+            <Flag weight="fill" size={24} />
+            <Clock weight="fill" size={24} />
+            <Star weight="fill" size={24} />
           </div>
         </Section>
 
