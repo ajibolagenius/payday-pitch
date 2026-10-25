@@ -83,7 +83,15 @@ export function PlayerNode({
       type="button"
       onClick={() => onSelect?.(player.slotKey)}
       aria-pressed={selected ?? false}
-      className="cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-0"
+      // Grass is dark in both themes, so white reads there; the bench sits on
+      // bg-muted, which is light paper in the light theme, so it takes the
+      // theme ring token (gold-700 light, gold-200 dark) instead.
+      className={cn(
+        "cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-offset-0",
+        player.role === "BENCH"
+          ? "focus-visible:ring-ring"
+          : "focus-visible:ring-white",
+      )}
     >
       {badge}
     </button>
