@@ -1,0 +1,366 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face {
+          font-family: "Space Grotesk";
+          font-style: normal;
+          font-weight: 300 700;
+          font-display: block;
+          src: url("assets/fonts/sg-latin.woff2") format("woff2");
+          unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+            U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+            U+2212, U+2215, U+FEFF, U+FFFD;
+        }
+        @font-face {
+          font-family: "Space Grotesk";
+          font-style: normal;
+          font-weight: 300 700;
+          font-display: block;
+          src: url("assets/fonts/sg-latin-ext.woff2") format("woff2");
+          unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+            U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+            U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+        }
+        #root {
+          position: absolute;
+          inset: 0;
+          background-color: #101010;
+          background-image:
+            linear-gradient(rgba(250, 250, 250, 0.055) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(250, 250, 250, 0.055) 1px, transparent 1px);
+          background-size: 2cqw 2cqw;
+          container-type: size;
+          font-family: "Space Grotesk", system-ui, sans-serif;
+          color: #fafafa;
+          overflow: hidden;
+        }
+        .rule-top {
+          position: absolute;
+          top: 1.7cqh;
+          left: 3.2cqw;
+          right: 3.2cqw;
+          height: 0.14cqw;
+          background: rgba(250, 250, 250, 0.6);
+        }
+        .rule-bottom {
+          position: absolute;
+          bottom: 1.7cqh;
+          left: 3.2cqw;
+          right: 3.2cqw;
+          height: 0.14cqw;
+          background: rgba(250, 250, 250, 0.6);
+        }
+        .head {
+          position: absolute;
+          top: 24cqh;
+          left: 57cqw;
+          font-size: 2.8cqh;
+          font-weight: 500;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: rgba(250, 250, 250, 0.75);
+          will-change: transform;
+        }
+        .head-line {
+          position: absolute;
+          top: 30cqh;
+          left: 57cqw;
+          width: 36cqw;
+          font-size: 7.8cqh;
+          font-weight: 700;
+          line-height: 1.05;
+          letter-spacing: -0.015em;
+          will-change: transform;
+        }
+        /* the app's pitch, transposed: viewBox 0 0 133 100, attacking left to right */
+        .field {
+          position: absolute;
+          top: 8cqh;
+          left: 4.5cqw;
+          width: 111.7cqh;
+          height: 84cqh;
+        }
+        .field svg {
+          display: block;
+          width: 100%;
+          height: 100%;
+        }
+        .grass {
+          fill-opacity: 0;
+        }
+        .mark {
+          fill: none;
+          stroke: rgba(250, 250, 250, 0.35);
+          stroke-width: 0.5;
+          stroke-linecap: round;
+        }
+        .spot {
+          fill: rgba(250, 250, 250, 0.35);
+          stroke: none;
+          opacity: 0;
+        }
+        /* shirt-node: pitch fill, paper number, chalk ring; volt when it is the read */
+        .node {
+          position: absolute;
+          width: 8cqh;
+          height: 8cqh;
+          margin: -4cqh 0 0 -4cqh;
+          background: #1b4638;
+          border: 0.16cqw solid rgba(250, 250, 250, 0.35);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 3cqh;
+          font-weight: 700;
+          line-height: 1;
+          will-change: transform;
+        }
+        .node.focal {
+          border-color: #f5ff6b;
+          color: #f5ff6b;
+        }
+        /*
+          The two named slots — the keeper and the bench — are read out in the
+          right column, not on the grass. A label under the GK disc lands on
+          top of the defence line at this aspect, and the whole point of the
+          wide frame is that the readout has somewhere to live.
+        */
+        .bench {
+          position: absolute;
+          top: 54cqh;
+          left: 57cqw;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 2.2cqh;
+          will-change: transform;
+        }
+        .bench-row {
+          display: flex;
+          align-items: center;
+          gap: 2cqw;
+          will-change: transform;
+        }
+        .bench-node {
+          width: 5cqh;
+          height: 5cqh;
+          background: #1b4638;
+          border: 0.16cqw solid rgba(250, 250, 250, 0.35);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 2.6cqh;
+          font-weight: 700;
+          color: rgba(250, 250, 250, 0.7);
+          will-change: transform;
+        }
+        .bench-node.focal {
+          border-color: #f5ff6b;
+          color: #f5ff6b;
+        }
+        .bench-label {
+          font-size: 2.8cqh;
+          font-weight: 500;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: rgba(250, 250, 250, 0.7);
+        }
+        .bench-label.focal {
+          color: #f5ff6b;
+        }
+      </style>
+
+      <div data-hf-id="hf-iydj"
+        id="root"
+        data-composition-id="03-shape"
+        data-width="2560"
+        data-height="1080"
+      >
+        <div data-hf-id="hf-is4o" class="rule-top"></div>
+        <div data-hf-id="hf-sm62" class="rule-bottom"></div>
+
+        <div data-hf-id="hf-y3wo" class="field" id="f3-field">
+          <svg data-hf-id="hf-6mvt" viewBox="0 0 133 100" role="presentation" aria-hidden="true">
+            <g data-hf-id="hf-qg5v" id="f3-grass">
+              <rect data-hf-id="hf-37h6" class="grass" x="0" y="0" width="10.23" height="100" fill="#1e5138" />
+              <rect data-hf-id="hf-e6iw" class="grass" x="10.23" y="0" width="10.23" height="100" fill="#22603f" />
+              <rect data-hf-id="hf-tpa8" class="grass" x="20.46" y="0" width="10.23" height="100" fill="#1e5138" />
+              <rect data-hf-id="hf-artw" class="grass" x="30.69" y="0" width="10.23" height="100" fill="#22603f" />
+              <rect data-hf-id="hf-ru5x" class="grass" x="40.92" y="0" width="10.23" height="100" fill="#1e5138" />
+              <rect data-hf-id="hf-wflo" class="grass" x="51.15" y="0" width="10.23" height="100" fill="#22603f" />
+              <rect data-hf-id="hf-1l10" class="grass" x="61.38" y="0" width="10.23" height="100" fill="#1e5138" />
+              <rect data-hf-id="hf-2gbw" class="grass" x="71.62" y="0" width="10.23" height="100" fill="#22603f" />
+              <rect data-hf-id="hf-73uy" class="grass" x="81.85" y="0" width="10.23" height="100" fill="#1e5138" />
+              <rect data-hf-id="hf-i4rv" class="grass" x="92.08" y="0" width="10.23" height="100" fill="#22603f" />
+              <rect data-hf-id="hf-qo4h" class="grass" x="102.31" y="0" width="10.23" height="100" fill="#1e5138" />
+              <rect data-hf-id="hf-txyj" class="grass" x="112.54" y="0" width="10.23" height="100" fill="#22603f" />
+              <rect data-hf-id="hf-t15h" class="grass" x="122.77" y="0" width="10.23" height="100" fill="#1e5138" />
+            </g>
+            <g data-hf-id="hf-5ytr" id="f3-marks">
+              <rect data-hf-id="hf-khwi" class="mark f3-draw" x="1.5" y="1.5" width="130" height="97" />
+              <path data-hf-id="hf-um7w" class="mark f3-draw" d="M66.5 1.5v97" />
+              <circle data-hf-id="hf-4w2h" class="mark f3-draw" cx="66.5" cy="50" r="12" />
+              <rect data-hf-id="hf-enj2" class="mark f3-draw" x="110" y="20" width="21.5" height="60" />
+              <rect data-hf-id="hf-0vl6" class="mark f3-draw" x="1.5" y="20" width="21.5" height="60" />
+              <path data-hf-id="hf-5h48" class="mark f3-draw" d="M110 40a11 11 0 0 0 0 20" />
+              <path data-hf-id="hf-xrsa" class="mark f3-draw" d="M23 40a11 11 0 0 1 0 20" />
+            </g>
+            <g data-hf-id="hf-f2ew" id="f3-detail">
+              <circle data-hf-id="hf-14cw" class="spot" cx="66.5" cy="50" r="0.9" />
+              <circle data-hf-id="hf-lt46" class="spot" cx="119" cy="50" r="0.9" />
+              <circle data-hf-id="hf-segw" class="spot" cx="14" cy="50" r="0.9" />
+              <rect data-hf-id="hf-a3vz" class="mark" x="122" y="34" width="9.5" height="32" />
+              <rect data-hf-id="hf-vay2" class="mark" x="1.5" y="34" width="9.5" height="32" />
+              <path data-hf-id="hf-kq8h" class="mark" d="M5.5 1.5a4 4 0 0 0-4 4" />
+              <path data-hf-id="hf-g0mi" class="mark" d="M127.5 1.5a4 4 0 0 1 4 4" />
+              <path data-hf-id="hf-bh86" class="mark" d="M1.5 94.5a4 4 0 0 0 4 4" />
+              <path data-hf-id="hf-e3c8" class="mark" d="M131.5 94.5a4 4 0 0 1-4 4" />
+              <path data-hf-id="hf-7o9s" class="mark" d="M1.5 38h-1v24h1M131.5 38h1v24h-1" />
+            </g>
+          </svg>
+
+          <!-- SLOT_COORDINATES transposed: x = 100 - y_portrait, y = x_portrait -->
+          <div data-hf-id="hf-z0bs" class="node focal" id="f3-n0" data-x="10" data-y="50" style="left: 10%; top: 50%">
+            1
+          </div>
+          <div data-hf-id="hf-un8x" class="node" id="f3-n1" data-x="28" data-y="84" style="left: 28%; top: 84%">2</div>
+          <div data-hf-id="hf-xnsr" class="node" id="f3-n2" data-x="23" data-y="62" style="left: 23%; top: 62%">3</div>
+          <div data-hf-id="hf-ryoh" class="node" id="f3-n3" data-x="23" data-y="38" style="left: 23%; top: 38%">4</div>
+          <div data-hf-id="hf-536r" class="node" id="f3-n4" data-x="28" data-y="16" style="left: 28%; top: 16%">5</div>
+          <div data-hf-id="hf-u32h" class="node" id="f3-n5" data-x="53" data-y="84" style="left: 53%; top: 84%">6</div>
+          <div data-hf-id="hf-5r1f" class="node" id="f3-n6" data-x="48" data-y="62" style="left: 48%; top: 62%">7</div>
+          <div data-hf-id="hf-2cbt" class="node" id="f3-n7" data-x="48" data-y="38" style="left: 48%; top: 38%">8</div>
+          <div data-hf-id="hf-hecf" class="node" id="f3-n8" data-x="53" data-y="16" style="left: 53%; top: 16%">9</div>
+          <div data-hf-id="hf-cyr4" class="node" id="f3-n9" data-x="80" data-y="62" style="left: 80%; top: 62%">10</div>
+          <div data-hf-id="hf-mj9l" class="node" id="f3-n10" data-x="80" data-y="38" style="left: 80%; top: 38%">11</div>
+        </div>
+
+        <div data-hf-id="hf-2uft" class="head" id="f3-head">4-4-2 · Balanced classic</div>
+        <div data-hf-id="hf-il80" class="head-line" id="f3-line">Eleven positions. No spare money.</div>
+
+        <div data-hf-id="hf-pyy0" class="bench" id="f3-bench">
+          <div data-hf-id="hf-pnf5" class="bench-row" id="f3-gklabel">
+            <div data-hf-id="hf-k24t" class="bench-node focal" id="f3-gknode">1</div>
+            <span data-hf-id="hf-qpuz" class="bench-label focal">Emergency fund</span>
+          </div>
+          <div data-hf-id="hf-lj25" class="bench-row">
+            <div data-hf-id="hf-3yve" class="bench-node" id="f3-bench-node">—</div>
+            <span data-hf-id="hf-93ph" class="bench-label">Bench · guilt-free</span>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+
+        // Field box in px at 2560x1080 — 111.7cqh x 84cqh, the app's 133:100.
+        const FIELD_W = 1.117 * 1080;
+        const FIELD_H = 0.84 * 1080;
+
+        // svg-path-draw — measure real geometry, dash to it, animate offset to 0.
+        // Pens don't bounce: power2.out only, never back.out / elastic.out.
+        const draws = Array.from(document.querySelectorAll(".f3-draw"));
+        draws.forEach((p) => {
+          const len = p.getTotalLength();
+          p.style.strokeDasharray = `${len}`;
+          p.style.strokeDashoffset = `${len}`;
+        });
+
+        tl.fromTo(
+          "#f3-grass .grass",
+          { fillOpacity: 0 },
+          { fillOpacity: 1, duration: 0.5, ease: "power1.out", stagger: 0.008 },
+          0,
+        );
+
+        const DRAW_DUR = 0.6;
+        const SEG_STAGGER = 0.22;
+        draws.forEach((p, i) => {
+          tl.to(
+            p,
+            { strokeDashoffset: 0, duration: DRAW_DUR, ease: "power2.out" },
+            0.05 + i * SEG_STAGGER,
+          );
+        });
+        const LAST_DRAW_END = 0.05 + (draws.length - 1) * SEG_STAGGER + DRAW_DUR;
+
+        tl.fromTo(
+          "#f3-detail",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.4, ease: "power1.out" },
+          LAST_DRAW_END - 0.25,
+        );
+
+        tl.fromTo(
+          "#f3-head",
+          { y: 12, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.45, ease: "power2.out" },
+          0.4,
+        );
+        tl.fromTo(
+          "#f3-line",
+          { y: 14, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.5, ease: "power2.out" },
+          0.7,
+        );
+
+        // center-outward-expansion — every shirt starts at the centre spot and
+        // travels to its real coordinate. Transforms only; left/top stay put.
+        const NODE_AT = 1.7;
+        const EXPAND_DUR = 1.4;
+        const STAGGER = Math.min(0.06, 0.5 / 11);
+        const nodes = Array.from(document.querySelectorAll("[data-x]"));
+        nodes.forEach((el, i) => {
+          const dx = (50 - Number(el.dataset.x)) / 100 * FIELD_W;
+          const dy = (50 - Number(el.dataset.y)) / 100 * FIELD_H;
+          tl.fromTo(
+            el,
+            { x: dx, y: dy, scale: 0.5, opacity: 0 },
+            { x: 0, y: 0, scale: 1, opacity: 1, duration: EXPAND_DUR, ease: "power3.out" },
+            NODE_AT + i * STAGGER,
+          );
+        });
+
+        // The two named slots land after the eleven: the keeper's role first,
+        // then the bench joke.
+        tl.fromTo(
+          "#f3-bench",
+          { y: 16, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.5, ease: "power2.out" },
+          3.25,
+        );
+        tl.fromTo(
+          "#f3-gklabel",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.45, ease: "power1.out" },
+          3.4,
+        );
+        // y + opacity, not scale: a scaling disc puts the shirt number under
+        // the reading floor for a few frames, and the checker is right that
+        // nobody can read it.
+        tl.fromTo(
+          "#f3-gknode",
+          { y: 8, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" },
+          3.5,
+        );
+        tl.fromTo(
+          "#f3-bench-node",
+          { y: 8, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" },
+          3.75,
+        );
+
+        window.__timelines["03-shape"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Space Grotesk";
+        font-style: normal;
+        font-weight: 300 700;
+        font-display: block;
+        src: url("assets/fonts/sg-latin.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+          U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+          U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: "Space Grotesk";
+        font-style: normal;
+        font-weight: 300 700;
+        font-display: block;
+        src: url("assets/fonts/sg-latin-ext.woff2") format("woff2");
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+          U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+          U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #101010;
+      }
+      #root {
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background-color: #101010;
+        background-image:
+          linear-gradient(rgba(250, 250, 250, 0.055) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(250, 250, 250, 0.055) 1px, transparent 1px);
+        background-size: 4.2cqw 4.2cqw;
+        container-type: size;
+        font-family: "Space Grotesk", system-ui, sans-serif;
+        color: #fafafa;
+      }
+      /* Portrait: the short axis is the width, so type and rhythm are in cqw
+         (1cqw = 10.8px) and only the vertical gaps ride cqh. */
+      .rule-top,
+      .rule-bottom {
+        position: absolute;
+        left: 8cqw;
+        right: 8cqw;
+        height: 0.3cqw;
+        background: rgba(250, 250, 250, 0.6);
+      }
+      .rule-top {
+        top: 2.5cqh;
+      }
+      .rule-bottom {
+        bottom: 2.5cqh;
+      }
+      .stack {
+        position: absolute;
+        top: 9cqh;
+        bottom: 9cqh;
+        left: 8cqw;
+        right: 8cqw;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .label {
+        font-size: 2.8cqw;
+        font-weight: 500;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(250, 250, 250, 0.7);
+      }
+      .label + .label {
+        margin-top: 1.9cqh;
+        color: rgba(250, 250, 250, 0.6);
+      }
+      .amount {
+        margin-top: 1.6cqh;
+        font-size: 11.4cqw;
+        font-weight: 700;
+        line-height: 0.92;
+        letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums;
+        color: #f5ff6b;
+      }
+      /* The five hands become the app's own ledger row: label left, figure
+         right, hairline between. The wide frame had room for blocks; this one
+         does not, and stacking them is the honest reading. */
+      .hands {
+        border-top: 0.3cqw solid rgba(250, 250, 250, 0.18);
+      }
+      .row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        padding: 3.6cqw 0;
+        border-bottom: 0.3cqw solid rgba(250, 250, 250, 0.18);
+      }
+      .row .lab {
+        font-size: 2.8cqw;
+        font-weight: 500;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(250, 250, 250, 0.7);
+      }
+      .row .fig {
+        font-size: 5.4cqw;
+        font-weight: 700;
+        letter-spacing: -0.015em;
+        font-variant-numeric: tabular-nums;
+      }
+      .claim {
+        font-size: 6.2cqw;
+        font-weight: 700;
+        line-height: 1.05;
+        letter-spacing: -0.015em;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="key-graphic-vertical" data-width="1080" data-height="1920" data-duration="1" data-fps="30">
+      <div class="rule-top"></div>
+      <div class="rule-bottom"></div>
+
+      <div class="stack">
+        <div class="head">
+          <div class="label">Credited · 10 Oct · 09:41 · Salary</div>
+          <div class="label">Left by the 20th</div>
+          <div class="amount">₦355,000</div>
+        </div>
+
+        <div class="hands">
+          <div class="row"><span class="lab">Rent</span><span class="fig">₦450,000</span></div>
+          <div class="row"><span class="lab">Debt</span><span class="fig">₦180,000</span></div>
+          <div class="row"><span class="lab">Family</span><span class="fig">₦150,000</span></div>
+          <div class="row"><span class="lab">Friday</span><span class="fig">₦80,000</span></div>
+          <div class="row"><span class="lab">Data</span><span class="fig">₦25,000</span></div>
+        </div>
+
+        <div class="claim">Every naira has a&nbsp;position.</div>
+      </div>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["key-graphic-vertical"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>
