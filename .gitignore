@@ -43,6 +43,15 @@ yarn-error.log*
 # local assets (design screenshots, chat history)
 /docs/assets/
 
+# HyperFrames working state and render output (videos/). Reproducible: re-render
+# with `pnpm --dir videos/<project> run render`. The composition sources under
+# videos/ stay versioned. Also set in videos/.gitignore upstream.
+.hyperframes/
+.thumbnails/
+.waveform-cache/
+renders/
+**/.media/recipes/*@v*/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
