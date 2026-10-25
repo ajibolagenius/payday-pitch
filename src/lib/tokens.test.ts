@@ -44,21 +44,40 @@ function channel(value: string): number {
   return n / 255
 }
 
+/** [r, g, b] in 0..1 from a resolved hex or rgb() value. */
+function toRgb(color: string): [number, number, number] {
+  if (color.startsWith("#")) {
+    return [1, 3, 5].map(
+      (i) => Number.parseInt(color.slice(i, i + 2), 16) / 255,
+    ) as [number, number, number]
+  }
+  const parts = [...color.matchAll(/(\d*\.?\d+%?)/g)]
+    .map((m) => m[1])
+    .filter(Boolean)
+    .slice(0, 3)
+  return parts.map(channel) as [number, number, number]
+}
+
 function luminance(color: string): number {
-  const rgb = color.startsWith("#")
-    ? [1, 3, 5].map((i) => Number.parseInt(color.slice(i, i + 2), 16) / 255)
-    : [...color.matchAll(/(\d*\.?\d+%?)\s/g)]
-        .slice(0, 3)
-        .map((m) => channel(m[1]))
-  const [r, g, b] = rgb.map((v) =>
+  const rgb = toRgb(color).map((v) =>
     v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4,
   )
+  const [r, g, b] = rgb
   return 0.2126 * r + 0.7152 * g + 0.0722 * b
 }
 
 function contrast(a: string, b: string): number {
   const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x)
   return (hi + 0.05) / (lo + 0.05)
+}
+
+/** The same alpha-over composite Tailwind emits for `bg-x/20` surfaces. */
+function composite(fg: string, bg: string, alpha: number): string {
+  const [fr, fgc, fb] = toRgb(fg)
+  const [br, bgc, bb] = toRgb(bg)
+  const mix = (a: number, b: number) =>
+    Math.round((alpha * a + (1 - alpha) * b) * 255)
+  return `rgb(${mix(fr, br)} ${mix(fgc, bgc)} ${mix(fb, bb)})`
 }
 
 const THEMES = {
@@ -68,18 +87,31 @@ const THEMES = {
 
 for (const [theme, blocks] of Object.entries(THEMES)) {
   describe(`tokens (${theme})`, () => {
-    it("gives every semantic token an explicit value", () => {
-      for (const pair of CONTRAST_PAIRS) {
-        for (const token of [pair.background, pair.foreground]) {
+    const pairs = CONTRAST_PAIRS.filter(
+      (pair) => !pair.theme || pair.theme === theme || pair.theme === "both",
+    )
+
+    it("gives every pair token an explicit value", () => {
+      for (const pair of pairs) {
+        for (const token of [
+          pair.background,
+          pair.foreground,
+          pair.over?.token,
+        ]) {
+          if (token === undefined) continue
           expect(resolve(token, blocks), `--${token}`).toBeTruthy()
         }
       }
     })
 
-    for (const pair of CONTRAST_PAIRS) {
+    for (const pair of pairs) {
       it(`${pair.foreground} on ${pair.background} clears AA`, () => {
-        const bg = resolve(pair.background, blocks)
-        const fg = resolve(pair.foreground, blocks)
+        let bg = resolve(pair.background, blocks)
+        if (pair.over) {
+          bg = composite(bg, resolve(pair.over.token, blocks), pair.over.alpha)
+        }
+        const textToken = pair.text?.[theme as "light" | "dark"]
+        const fg = resolve(textToken ?? pair.foreground, blocks)
         expect(
           contrast(fg, bg),
           `${pair.use} (${fg} on ${bg})`,
@@ -89,17 +121,19 @@ for (const [theme, blocks] of Object.entries(THEMES)) {
   })
 }
 
-describe("the volt yellow rule", () => {
-  it("never paints text with volt on a light surface", () => {
+describe("the bright gold rule", () => {
+  it("never paints body text with a bright gold in the paper theme", () => {
     const light = THEMES.light
-    const volt = resolve("volt", light)
+    const brightGolds = ["gold-200", "gold-300", "gold-500", "gold-600"].map(
+      (name) => resolve(name, light),
+    )
     for (const token of [
       "foreground",
       "card-foreground",
       "muted-foreground",
       "accent-foreground",
     ]) {
-      expect(resolve(token, light), `--${token}`).not.toBe(volt)
+      expect(brightGolds, `--${token}`).not.toContain(resolve(token, light))
     }
   })
 })

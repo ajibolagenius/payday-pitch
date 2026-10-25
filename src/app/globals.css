@@ -7,70 +7,99 @@
 /* Layer 1: raw brand values, defined once, never consumed by components.
    Artwork (pitch, stickers) may reference these vars directly. */
 :root {
-  --pitch-green: #1b4638;
-  --volt: #f5ff6b;
-  --surface-black: #101010;
-  --paper: #fafafa;
-  --ink: #141414;
+  /* paper first surfaces (warm) */
+  --paper-50: #fffdf8;
+  --paper-100: #f6f3eb;
+  --paper-200: #eae5d8;
+  --paper-300: #ddd8c9;
+  /* deep forest, the brand hue */
+  --forest-600: #2e6b4e;
+  --forest-700: #1c4534;
+  --forest-800: #143428;
+  --forest-900: #0e241c;
+  /* amber gold, the single money accent */
+  --gold-50: #fff1cf;
+  --gold-200: #f0c75e;
+  --gold-300: #e3b23c;
+  --gold-500: #c89321;
+  --gold-600: #b07f1b;
+  --gold-700: #7a5410;
+  /* terracotta, state only (debt, warnings, errors) */
+  --terracotta-300: #eb9680;
+  --terracotta-400: #e07a5f;
+  --terracotta-500: #c95d41;
+  --terracotta-600: #b2452c;
+  --terracotta-700: #8a3018;
+  /* warm slate, quiet neutrals */
+  --slate-600: #5c564c;
+  --slate-700: #3a352b;
+  --ink: #241f17;
+  --night: #12160f;
+  --night-card: #1b201a;
+  /* pitch grass, painted turf (artwork reads these raw vars) */
+  --grass-a: #254a34;
+  --grass-b: #2c553d;
   /* Pitch line artwork constant: low alpha on grass in light, higher in dark. */
-  --pitch-line: rgb(255 255 255 / 0.35);
+  --pitch-line: rgb(255 255 255 / 0.5);
+  --radius: 0.5rem;
 }
 
-/* Layer 2: semantic tokens (light). Components consume ONLY these,
-   via the mapped utilities (bg-card, text-muted-foreground, ...). */
+/* Layer 2: semantic tokens, paper first (the default theme).
+   Components consume ONLY these, via the mapped utilities
+   (bg-card, text-muted-foreground, ...). */
 :root {
-  --background: var(--paper);
+  --background: var(--paper-100);
   --foreground: var(--ink);
-  --card: #ffffff;
+  --card: var(--paper-50);
   --card-foreground: var(--ink);
-  --popover: #ffffff;
+  --popover: var(--paper-50);
   --popover-foreground: var(--ink);
-  --primary: var(--pitch-green);
+  --primary: var(--forest-700);
   --primary-foreground: #ffffff;
-  --secondary: #e8efea;
-  --secondary-foreground: var(--pitch-green);
-  --muted: #efefef;
-  --muted-foreground: #525252;
-  /* Volt is fill-only in light: text on accent stays white on pitch green. */
-  --accent: var(--pitch-green);
-  --accent-foreground: #ffffff;
-  --destructive: #c41e2f;
+  --secondary: var(--paper-200);
+  --secondary-foreground: var(--forest-800);
+  --muted: var(--paper-200);
+  --muted-foreground: var(--slate-600);
+  /* Gold in light is a tint surface, never a fill; the text on it is brown gold. */
+  --accent: var(--gold-50);
+  --accent-foreground: var(--gold-700);
+  --destructive: var(--terracotta-700);
   --destructive-foreground: #ffffff;
-  --success: #1e7a45;
+  --success: var(--forest-600);
   --success-foreground: #ffffff;
-  --border: #e0e0e0;
-  --input: #d4d4d4;
-  --ring: var(--pitch-green);
-  --radius: 0.625rem;
+  --border: var(--paper-300);
+  --input: #c4beab;
+  --ring: var(--gold-700);
 }
 
-/* Dark swap: every semantic token gets an explicit dark value.
-   This is where volt text is allowed (light inks on near black). */
+/* Dark swap: forest tinted night, kept as a theme with its own written out
+   values. This is where gold lives as a fill (accent) and light inks return. */
 .dark {
-  --background: var(--surface-black);
-  --foreground: var(--paper);
-  --card: #1a1a1a;
-  --card-foreground: var(--paper);
-  --popover: #1a1a1a;
-  --popover-foreground: var(--paper);
-  --primary: var(--pitch-green);
-  --primary-foreground: var(--volt);
-  --secondary: #23352c;
-  --secondary-foreground: var(--paper);
-  --muted: #2a2a2a;
-  --muted-foreground: #ababab;
-  --accent: var(--volt);
-  --accent-foreground: var(--surface-black);
-  /* Kept light enough that error text also clears AA on --card and on the
-     bg-destructive/10 and /20 tints shadcn uses, not just on --background. */
-  --destructive: #ff6b6b;
-  --destructive-foreground: var(--surface-black);
-  --success: #4cc77f;
-  --success-foreground: var(--surface-black);
-  --border: #2a2a2a;
-  --input: #3a3a3a;
-  --ring: var(--volt);
-  --pitch-line: rgb(255 255 255 / 0.6);
+  --background: var(--night);
+  --foreground: #f2efe6;
+  --card: var(--night-card);
+  --card-foreground: #f2efe6;
+  --popover: #161b14;
+  --popover-foreground: #f2efe6;
+  /* Lifted off the night canvas by the filled button's hairline border below. */
+  --primary: var(--forest-700);
+  --primary-foreground: #ffffff;
+  --secondary: #23281f;
+  --secondary-foreground: #e9e6dc;
+  --muted: #262a23;
+  --muted-foreground: #ada99c;
+  --accent: var(--gold-200);
+  --accent-foreground: var(--ink);
+  /* Amendment A1: error TEXT in dark rides terracotta-300 so it clears AA on
+     its own tint; terracotta-400 stays for artwork and plain fills. */
+  --destructive: var(--terracotta-300);
+  --destructive-foreground: var(--night);
+  --success: #5fb98a;
+  --success-foreground: var(--night);
+  --border: #33362c;
+  --input: #454a3d;
+  --ring: var(--gold-200);
+  --pitch-line: rgb(255 255 255 / 0.75);
 }
 
 /* Tailwind v4 maps these to utilities (bg-background, text-card-foreground...).
@@ -97,8 +126,10 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --font-sans: var(--font-space-grotesk);
-  --font-heading: var(--font-space-grotesk);
+  --font-sans: var(--font-switzer);
+  --font-heading: var(--font-melodrama);
+  --font-money: var(--font-tabular);
+  --font-accent: var(--font-teko);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -117,9 +148,25 @@
   }
 }
 
+/* Spec 0009 invariant: in dark, a forest 700 filled button nearly equals the
+   night canvas, so a hairline lifts it (shape plus tone, not color contrast).
+   Written here instead of in button.tsx to keep shadcn internals stock. */
+.dark [data-slot="button"].bg-primary {
+  border-width: 1px;
+  border-style: solid;
+  border-color: color-mix(in oklab, var(--primary) 40%, transparent);
+}
+
 /* Columns of figures align: apply to any rendered amount (MoneyText). */
 .money {
+  font-family: var(--font-money);
   font-variant-numeric: tabular-nums;
+}
+
+/* Headings speak Melodrama (never italic, it has no italic cut). */
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  font-weight: 500;
 }
 
 /* Driver.js pitch tour (spec 0007 AC-7). The library ships hard coded colours,
@@ -128,7 +175,7 @@
    weight as one class and its stylesheet arrives after this one. Every value
    here reads a semantic token. */
 .driver-popover.tour-popover {
-  font-family: var(--font-space-grotesk);
+  font-family: var(--font-sans);
   background-color: var(--card);
   color: var(--card-foreground);
   border: 1px solid var(--border);
