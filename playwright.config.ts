@@ -23,6 +23,7 @@ export default defineConfig({
         "**/design-system.spec.ts",
         "**/auth.spec.ts",
         "**/walk.spec.ts",
+        "**/tactics.spec.ts",
       ],
     },
     {
@@ -44,6 +45,13 @@ export default defineConfig({
       name: "walk",
       use: { ...devices["Pixel 7"], baseURL: DEV_ORIGIN },
       testMatch: ["**/walk.spec.ts"],
+    },
+    {
+      // The tactics board edits money for a signed in account, so it signs one
+      // up through Mailpit on the same origin as the walk (spec 0008).
+      name: "tactics",
+      use: { ...devices["Pixel 7"], baseURL: DEV_ORIGIN },
+      testMatch: ["**/tactics.spec.ts"],
     },
   ],
   webServer: [

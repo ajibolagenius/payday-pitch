@@ -175,14 +175,14 @@ isOneToOne: false
                   ]
                 },"user_tactic": {
                   Row: {
-                    "created_at": string,"id": number,"name": string,"shape_name": string | null,"updated_at": string,"user_id": string
+                    "created_at": string,"deleted_at": string | null,"id": number,"name": string,"shape_name": string | null,"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: never,"name": string,"shape_name"?: string | null,"updated_at"?: string,"user_id": string
+                    "created_at"?: string,"deleted_at"?: string | null,"id"?: never,"name": string,"shape_name"?: string | null,"updated_at"?: string,"user_id": string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: never,"name"?: string,"shape_name"?: string | null,"updated_at"?: string,"user_id"?: string
+                    "created_at"?: string,"deleted_at"?: string | null,"id"?: never,"name"?: string,"shape_name"?: string | null,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     
@@ -224,6 +224,14 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"gk_fund_progress": {
+                  Row: {
+                    "gk_saved_minor": number | null,"user_id": string | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    
+                  ]
                 },"goal_progress": {
                   Row: {
                     "goal_id": number | null,"saved_minor": number | null
@@ -242,7 +250,7 @@ isOneToOne: false
           }
           Functions: {
             "play_match":
-{ Args: { "p_lines": Json,"p_shape_id": number }; Returns: Json
+{ Args: { "p_lines"?: Json,"p_shape_id"?: number,"p_tactic_version_id"?: number }; Returns: Json
                            }
           }
           Enums: {

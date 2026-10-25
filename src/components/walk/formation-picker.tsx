@@ -11,14 +11,7 @@ import { splitMatch, zoneShareKobo, type SplitPosition } from "@/domain/money"
 import type { FormationRole } from "@/domain/formations"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-
-const ZONE_WORD: Record<FormationRole, string> = {
-  GK: "Keeper",
-  DEF: "Defence",
-  MID: "Midfield",
-  FWD: "Attack",
-  BENCH: "Bench",
-}
+import { ZONE_WORD, percent } from "@/components/pitch/zones"
 
 const ZONE_ORDER: FormationRole[] = ["GK", "DEF", "MID", "FWD", "BENCH"]
 
@@ -34,12 +27,6 @@ function zoneShares(formation: LibraryFormation) {
     role,
     basisPoints: totals.get(role)!,
   }))
-}
-
-// Basis points are hundredths of a percent: 4000 is 40%, 333 is 3.33%.
-function percent(basisPoints: number): string {
-  const value = basisPoints / 100
-  return `${Number.isInteger(value) ? value : value.toFixed(2).replace(/0+$/, "")}%`
 }
 
 function spots(formation: LibraryFormation): SplitPosition[] {

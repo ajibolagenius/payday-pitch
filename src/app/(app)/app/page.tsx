@@ -22,12 +22,20 @@ export default async function AppHome() {
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 py-8">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <Link
           href="/"
           className="text-muted-foreground text-sm underline underline-offset-4"
         >
           Payday Pitch
+        </Link>
+        {/* The board is the loop's second door: the walk plays a shape, the
+            board makes one yours. Same link styling as the shipped nav. */}
+        <Link
+          href="/app/tactics"
+          className="text-accent text-sm underline underline-offset-4"
+        >
+          Tactics board
         </Link>
         <SignOutButton />
       </div>

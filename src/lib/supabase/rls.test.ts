@@ -649,11 +649,11 @@ describe.skipIf(!enabled)(
       await a.from("match").delete().eq("id", bare!.id)
     })
 
-    test("both progress views exist and are security_invoker (AC-8)", async () => {
+    test("all three progress views exist and are security_invoker (AC-8)", async () => {
       const out = await dbQuery(
-        "select count(*) from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relname in ('debt_progress', 'goal_progress') and c.reloptions @> array['security_invoker=true']",
+        "select count(*) from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relname in ('debt_progress', 'goal_progress', 'gk_fund_progress') and c.reloptions @> array['security_invoker=true']",
       )
-      expect(firstCount(out)).toBe(2)
+      expect(firstCount(out)).toBe(3)
     })
 
     test("no stored balance or progress column exists on any table (AC-8)", async () => {
@@ -992,9 +992,9 @@ describe.skipIf(!enabled)(
       expect(error).not.toBeNull()
       const probe = await dbQuery(
         "select concat_ws(',', " +
-          "case when has_function_privilege('authenticated', 'public.play_match(bigint, jsonb)', 'execute') then '1' else '0' end, " +
-          "case when has_function_privilege('anon', 'public.play_match(bigint, jsonb)', 'execute') then '1' else '0' end, " +
-          "case when has_function_privilege('public', 'public.play_match(bigint, jsonb)', 'execute') then '1' else '0' end)",
+          "case when has_function_privilege('authenticated', 'public.play_match(bigint, jsonb, bigint)', 'execute') then '1' else '0' end, " +
+          "case when has_function_privilege('anon', 'public.play_match(bigint, jsonb, bigint)', 'execute') then '1' else '0' end, " +
+          "case when has_function_privilege('public', 'public.play_match(bigint, jsonb, bigint)', 'execute') then '1' else '0' end)",
       )
       // authenticated yes, anon and the PUBLIC pseudo role no.
       expect(probe.replace(/\D/g, "")).toMatch(/100/)
@@ -1432,6 +1432,385 @@ describe.skipIf(!enabled)(
         0, // every tactic version went with its tactic
         0, // every line went with its match
       ])
+    })
+  },
+)
+
+// Tactics board (spec 0008): the soft delete column, the fund view, and
+// play_match's tactic branch. Every test plays as its own fresh account,
+// because user A's rows are gone by the time this block runs (the cascade test
+// above deletes the account). Nothing here depends on a shared user.
+describe.skipIf(!enabled)(
+  "tactics board (spec 0008: AC-3, AC-6, AC-9 to AC-11)",
+  { timeout: 60_000 },
+  () => {
+    type TacticPlayResult = {
+      code: string
+      match_id?: number
+      period?: string
+      message?: string
+    }
+
+    const INCOME = 50_000_000 // ₦500,000
+    const COSTS = 15_000_000 // ₦150,000
+    const players: string[] = []
+
+    afterAll(async () => {
+      for (const id of players) await svc.auth.admin.deleteUser(id)
+    })
+
+    /** An account that can play a month: one income, one cost, no matches. */
+    async function tacticPlayer() {
+      const [id, client] = await makeUser(
+        `tactics-${run}-${players.length}@test.local`,
+      )
+      players.push(id)
+      const { error: incomeErr } = await client.from("income_stream").insert({
+        user_id: id,
+        name: "Salary",
+        amount_minor: INCOME,
+        currency: "NGN",
+        payday_day: 25,
+      })
+      if (incomeErr) throw new Error(`seed income: ${incomeErr.message}`)
+      const { error: costErr } = await client.from("fixed_cost").insert({
+        user_id: id,
+        name: "Rent",
+        amount_minor: COSTS,
+        currency: "NGN",
+      })
+      if (costErr) throw new Error(`seed cost: ${costErr.message}`)
+      return { id, client }
+    }
+
+    async function spotsOf(
+      client: Client,
+      shape: string,
+    ): Promise<SplitPosition[]> {
+      const { data: shapeRow, error: shapeErr } = await client
+        .from("formation_shape")
+        .select("id")
+        .eq("name", shape)
+        .single()
+      if (shapeErr || !shapeRow) {
+        throw new Error(`seed shape ${shape} missing: ${shapeErr?.message}`)
+      }
+      const { data, error } = await client
+        .from("formation_position")
+        .select("role, spot_index, label, basis_points")
+        .eq("shape_id", shapeRow.id)
+        .order("spot_index")
+      if (error || !data) {
+        throw new Error(`seed positions missing: ${error?.message}`)
+      }
+      return data.map((r) => ({
+        role: r.role as SplitPosition["role"],
+        spotIndex: r.spot_index,
+        label: r.label,
+        basisPoints: r.basis_points,
+      }))
+    }
+
+    /** A saved tactic whose pinned version is the 4-4-2 seed, stored the way
+     *  the board's save action stores it: snake_case keys, one entry per spot. */
+    async function savedTactic(
+      client: Client,
+      userId: string,
+      name = "My Plan",
+    ) {
+      const spots = await spotsOf(client, "4-4-2")
+      const { data: tactic, error } = await client
+        .from("user_tactic")
+        .insert({ user_id: userId, name, shape_name: "4-4-2" })
+        .select()
+        .single()
+      if (error || !tactic) throw new Error(`seed tactic: ${error?.message}`)
+      const { data: version, error: versionErr } = await client
+        .from("user_tactic_version")
+        .insert({
+          tactic_id: tactic.id,
+          split: spots.map((p) => ({
+            role: p.role,
+            spot_index: p.spotIndex,
+            label: p.label,
+            basis_points: p.basisPoints,
+          })),
+        })
+        .select()
+        .single()
+      if (versionErr || !version) {
+        throw new Error(`seed version: ${versionErr?.message}`)
+      }
+      return { tactic, version, spots }
+    }
+
+    /** The payload the board's play action builds, then the tactic call. The
+     *  source object is what the test is asserting, so it can be odd on purpose. */
+    async function playTactic(
+      client: Client,
+      source: { p_tactic_version_id?: number; p_shape_id?: number },
+      spots: SplitPosition[],
+      actuals: Record<number, number> = {},
+    ): Promise<TacticPlayResult> {
+      const lines = splitMatch(spots, INCOME, COSTS).lines.map((l) => ({
+        role: l.role,
+        spot_index: l.spotIndex,
+        label: l.label,
+        basis_points: l.basisPoints,
+        planned_minor: l.plannedKobo,
+        actual_minor: actuals[l.spotIndex] ?? null,
+        currency: "NGN",
+      }))
+      const { data, error } = await client.rpc("play_match", {
+        p_lines: lines,
+        ...source,
+      })
+      if (error) throw new Error(`rpc failed: ${error.code} ${error.message}`)
+      return data as unknown as TacticPlayResult
+    }
+
+    const viaTactic = (versionId: number) => ({
+      p_tactic_version_id: versionId,
+    })
+
+    test("a tactic play writes its source pair and the frozen split (AC-11)", async () => {
+      const { id, client } = await tacticPlayer()
+      const { tactic, version, spots } = await savedTactic(client, id)
+      const result = await playTactic(client, viaTactic(version.id), spots, {
+        0: 1_000_000,
+      })
+      expect(result.code).toBe("ok")
+
+      const { data: matchRow } = await client
+        .from("match")
+        .select(
+          "source_kind, tactic_id, tactic_version_id, shape_name, library_id",
+        )
+        .eq("id", result.match_id!)
+        .single()
+      expect(matchRow).toMatchObject({
+        source_kind: "tactic",
+        tactic_id: tactic.id,
+        tactic_version_id: version.id,
+        shape_name: "4-4-2",
+        library_id: null,
+      })
+
+      // Every line carries the plan its version pinned, spot for spot.
+      const { data: lines } = await client
+        .from("match_line")
+        .select(
+          "spot_index, role, label, basis_points, planned_minor, actual_minor",
+        )
+        .eq("match_id", result.match_id!)
+        .order("spot_index")
+      expect(lines?.length).toBe(12)
+      for (const spot of spots) {
+        const line = lines?.find((l) => l.spot_index === spot.spotIndex)
+        expect(line).toMatchObject({
+          role: spot.role,
+          label: spot.label,
+          basis_points: spot.basisPoints,
+        })
+      }
+      expect(lines?.[0]?.actual_minor).toBe(1_000_000)
+    })
+
+    test("a tactic, its versions and the match played from it are invisible to another user (AC-3)", async () => {
+      const { id, client } = await tacticPlayer()
+      const { client: other } = await tacticPlayer()
+      const { tactic, version, spots } = await savedTactic(client, id)
+      const played = await playTactic(client, viaTactic(version.id), spots)
+
+      const { data: tacticSeen } = await other
+        .from("user_tactic")
+        .select()
+        .eq("id", tactic.id)
+      expect(tacticSeen).toEqual([])
+      const { data: versionSeen } = await other
+        .from("user_tactic_version")
+        .select()
+        .eq("id", version.id)
+      expect(versionSeen).toEqual([])
+      const { data: matchSeen } = await other
+        .from("match")
+        .select()
+        .eq("id", played.match_id!)
+      expect(matchSeen).toEqual([])
+      const { data: lineSeen } = await other
+        .from("match_line")
+        .select()
+        .eq("match_id", played.match_id!)
+      expect(lineSeen).toEqual([])
+
+      // The new column is no way in either: B's update matches no row.
+      const { data: wrote } = await other
+        .from("user_tactic")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("id", tactic.id)
+        .select()
+      expect(wrote).toEqual([])
+    })
+
+    test("playing a version that is no longer current is refused (AC-9 tactic_stale)", async () => {
+      const { id, client } = await tacticPlayer()
+      const { version, spots } = await savedTactic(client, id)
+      const { error } = await client
+        .from("user_tactic_version")
+        .update({ is_current: false })
+        .eq("id", version.id)
+      expect(error).toBeNull()
+
+      const result = await playTactic(client, viaTactic(version.id), spots)
+      expect(result.code).toBe("tactic_stale")
+      expect(result.message).toMatch(/reload/i)
+    })
+
+    test("a deleted tactic cannot be played, and its name stays taken (AC-10)", async () => {
+      const { id, client } = await tacticPlayer()
+      const { tactic, version, spots } = await savedTactic(
+        client,
+        id,
+        "Old Plan",
+      )
+      const { error: deleteErr } = await client
+        .from("user_tactic")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("id", tactic.id)
+      expect(deleteErr).toBeNull()
+
+      const result = await playTactic(client, viaTactic(version.id), spots)
+      expect(result.code).toBe("not_found")
+
+      // The shipped unique (user_id, name) is a table constraint, so a
+      // reserved name still collides after a soft delete.
+      const { error: dupeErr } = await client.from("user_tactic").insert({
+        user_id: id,
+        name: "Old Plan",
+        shape_name: "4-4-2",
+      })
+      expect(dupeErr?.code).toBe("23505")
+    })
+
+    test("another user's version id answers not_found, with no hint it exists (AC-3)", async () => {
+      const { id, client } = await tacticPlayer()
+      const { client: attacker } = await tacticPlayer()
+      const { version, spots } = await savedTactic(client, id)
+
+      const result = await playTactic(attacker, viaTactic(version.id), spots)
+      expect(result.code).toBe("not_found")
+
+      const { data: played } = await attacker
+        .from("match")
+        .select()
+        .eq("source_kind", "tactic")
+      expect(played).toEqual([])
+    })
+
+    test("naming both sources, or neither, is a validation refusal (AC-9)", async () => {
+      const { id, client } = await tacticPlayer()
+      const { version, spots } = await savedTactic(client, id)
+      const { data: shape } = await client
+        .from("formation_shape")
+        .select("id")
+        .eq("name", "4-4-2")
+        .single()
+
+      const both = await playTactic(
+        client,
+        { p_tactic_version_id: version.id, p_shape_id: shape!.id },
+        spots,
+      )
+      expect(both).toMatchObject({
+        code: "validation",
+        message: "Play one shape or one tactic.",
+      })
+
+      // Neither source: the payload alone, which is what a call that forgot
+      // both arguments looks like.
+      const lines = splitMatch(spots, INCOME, COSTS).lines.map((l) => ({
+        role: l.role,
+        spot_index: l.spotIndex,
+        label: l.label,
+        basis_points: l.basisPoints,
+        planned_minor: l.plannedKobo,
+        actual_minor: null,
+        currency: "NGN",
+      }))
+      const { data: neither } = await client.rpc("play_match", {
+        p_lines: lines,
+      })
+      expect(neither).toMatchObject({
+        code: "validation",
+        message: "Play one shape or one tactic.",
+      })
+    })
+
+    test("a payload that disagrees with the pinned split writes nothing (AC-4 tamper)", async () => {
+      const { id, client } = await tacticPlayer()
+      const { version, spots } = await savedTactic(client, id)
+      const lines = splitMatch(spots, INCOME, COSTS).lines.map((l) => ({
+        role: l.role,
+        spot_index: l.spotIndex,
+        // The plan belongs to the version. A payload that renames a spot is
+        // refused even though every sum still adds up.
+        label: l.spotIndex === 0 ? "Renamed Spot" : l.label,
+        basis_points: l.basisPoints,
+        planned_minor: l.plannedKobo,
+        actual_minor: null,
+        currency: "NGN",
+      }))
+      const { data, error } = await client.rpc("play_match", {
+        p_lines: lines,
+        p_tactic_version_id: version.id,
+      })
+      expect(error).toBeNull()
+      expect(data).toMatchObject({ code: "validation" })
+
+      const { count } = await client
+        .from("match")
+        .select("*", { count: "exact", head: true })
+      expect(count).toBe(0)
+    })
+
+    test("gk_fund_progress counts the active match only, for its owner (AC-6)", async () => {
+      const { id, client } = await tacticPlayer()
+      const { client: other } = await tacticPlayer()
+      const { version, spots } = await savedTactic(client, id)
+
+      const first = await playTactic(client, viaTactic(version.id), spots, {
+        0: 1_000_000,
+      })
+      expect(first.code).toBe("ok")
+      const { data: mine } = await client
+        .from("gk_fund_progress")
+        .select("user_id, gk_saved_minor")
+        .eq("user_id", id)
+        .single()
+      expect(Number(mine?.gk_saved_minor)).toBe(1_000_000)
+
+      // The correction supersedes the first match, so the fund is what the
+      // active month logged, never the sum of both.
+      const second = await playTactic(client, viaTactic(version.id), spots, {
+        0: 2_500_000,
+      })
+      expect(second.code).toBe("ok")
+      const { data: after } = await client
+        .from("gk_fund_progress")
+        .select("gk_saved_minor")
+        .eq("user_id", id)
+        .single()
+      expect(Number(after?.gk_saved_minor)).toBe(2_500_000)
+
+      // Security invoker: another user's read returns no row at all, so a
+      // missing number is the answer rather than someone else's total.
+      const { data: foreignRow } = await other
+        .from("gk_fund_progress")
+        .select()
+        .eq("user_id", id)
+      expect(foreignRow).toEqual([])
+      const { data: anyRow } = await other.from("gk_fund_progress").select()
+      expect(anyRow).toEqual([])
     })
   },
 )

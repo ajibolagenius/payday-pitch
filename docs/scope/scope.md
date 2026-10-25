@@ -17,7 +17,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 4   | Design system & UI foundation        | Foundation | in-progress |
 | 5   | Sign in & accounts                   | Slice 1    | in-progress |
 | 6   | First match loop                     | Slice 1    | in-progress |
-| 7   | Tactics board                        | Slice 2    | planned     |
+| 7   | Tactics board                        | Slice 2    | done        |
 | 8   | Debt mode (Park the Bus)             | Slice 3    | planned     |
 | 9   | Season view                          | Slice 4    | planned     |
 | 10  | Payday reminders                     | Slice 5    | planned     |
@@ -125,12 +125,21 @@ spec [0007](../specs/0007-first-match-loop.md) · code in `src/domain/`, `src/fe
 
 ## Slice 2: Tactics
 
-### 7. Tactics board · needs a decision
+### 7. Tactics board
 
 Start from any formation and tune it: adjust each position's percentage yourself, save it as your own tactic, and get coaching nudges when the shape gets risky. A suggested formation based on your situation (debt, thin emergency fund, high fixed costs) lives here too.
 **Done when:** a user edits percentages on top of a chosen formation and saves it as a custom tactic; the total always reaches 100% before it saves; a warning shows when defense passes 50% of income or the goalkeeper drops to 0%; once the emergency fund reaches 3 to 6 months of fixed costs, the app suggests moving the goalkeeper's share to the forwards; the app suggests a formation that fits the user's numbers; the next match uses the new shape.
+spec [0008](../specs/0008-tactics-board.md) · code in `src/domain/tactics.ts`, `src/features/tactics/`, `src/components/pitch/`, `src/app/(app)/app/tactics/`, `src/lib/schemas.ts`, `supabase/migrations/`
 
-- [ ] Design it (spec): `/architect tactics board`
+- [x] Design it (spec): `/architect tactics board`
+- [x] Build it: `/develop tactics board` (spec 0008)
+  - [x] Database: `deleted_at`, the fund view, `play_match` replaced with the tactic branch and its grants, isolation tests (AC-3, AC-8, AC-9, AC-10, AC-11)
+  - [x] Domain: share rules both ways, the two warnings, fund months, suggestion order (AC-4, AC-5, AC-6, AC-7)
+  - [x] Actions and read: save, rename, delete, play, the page read with its params (AC-2, AC-3, AC-11)
+  - [x] Board UI: page, nav entry, pitch editor with live amounts and the locked pool label (AC-1, AC-5, AC-12)
+  - [x] One card, play path, and cleanup: suggestion states, shortfall refusal, delete confirm, empty states, Playwright spec (AC-6, AC-7, AC-9, AC-10, AC-12)
+- [x] Verify it: `/check verify tactics board` (AC-1 to AC-12)
+- [x] Test it: `/test tactics board`
 
 ## Slice 3: Debt mode
 
