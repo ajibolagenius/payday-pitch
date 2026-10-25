@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react"
 import { useTheme } from "next-themes"
-import { MoonIcon, SunIcon } from "lucide-react"
+import { Moon, Sun } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 
 const emptySubscribe = () => () => {}
@@ -37,9 +37,9 @@ export function ThemeToggle() {
     >
       {mounted ? (
         isDark ? (
-          <SunIcon />
+          <Sun weight="regular" size={20} />
         ) : (
-          <MoonIcon />
+          <Moon weight="regular" size={20} />
         )
       ) : (
         <span className="size-4" aria-hidden />

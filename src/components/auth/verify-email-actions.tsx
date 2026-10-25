@@ -22,7 +22,7 @@ export function VerifyEmailActions() {
       <form action={action}>
         <button
           type="submit"
-          className="text-accent text-sm underline underline-offset-4"
+          className="text-accent-text text-sm underline underline-offset-4"
         >
           Send the link again
         </button>

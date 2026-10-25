@@ -29,6 +29,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 16  | Landing page                         | Slice 7    | planned     |
 | 17  | Production plans & limits            | Slice 7    | planned     |
 | 18  | Matchday experience                  | Slice 4    | planned     |
+| 19  | Brand mark, wordmark & identity      | Foundation | planned     |
 
 ## Foundations
 
@@ -90,13 +91,26 @@ The system shipped in spec 0005 (tokens, two layer theming, component kit, pitch
   - [x] Pitch view (AC-5, AC-6): slot coordinates in the domain, SVG field, bench strip, Motion layout transitions
   - [x] Demo route and contrast gates (AC-1, AC-3, AC-4): dev only page, token pair test, axe, keyboard and reduced motion checks, design.md
 - [x] Design it (spec): `/architect visual identity refresh` (spec [0009](../specs/0009-visual-identity-refresh.md), the refresh: type, palette, theme default, icon swap, anti-slop rules)
-- [ ] Build it: `/develop visual identity refresh` (spec 0009)
-  - [ ] Type and tokens: Fontshare files vendored with the byte budget, `globals.css` two layer flip to paper first, light default, pair contract reshaped and green (AC-2 to AC-6)
-  - [ ] Icon swap: Phosphor across app code, RuneIcons deleted, lucide confined to shadcn internals (AC-7)
-  - [ ] Skin pass and e2e rewrite: pitch, every surface in the inventory, both themes, spec assertions moved onto the new identity (AC-8, AC-10, AC-11)
-  - [ ] Peripheral color and gates: `brand-palette.ts` feeding emails, manifest, and app icons; `design.md` rewritten; full gate set (AC-1, AC-9, AC-11)
+- [x] Build it: `/develop visual identity refresh` (spec 0009, branch `feat/visual-identity-refresh`)
+  - [x] Type and tokens: Fontshare files vendored with the byte budget, `globals.css` two layer flip to paper first, light default, pair contract reshaped and green (AC-2 to AC-6)
+  - [x] Icon swap: Phosphor across app code, RuneIcons deleted, lucide confined to shadcn internals (AC-7)
+  - [x] Skin pass and e2e rewrite: pitch, every surface in the inventory, both themes, spec assertions moved onto the new identity (AC-8, AC-10, AC-11)
+  - [x] Peripheral color and gates: `brand-palette.ts` feeding emails, manifest, and app icons; `design.md` rewritten; full gate set (AC-1, AC-9, AC-11)
 - [ ] Verify it: `/check verify design system & visual identity` (spec 0005 AC-1 to AC-8 plus the refresh acceptance criteria)
 - [x] Test it: `/test design system & UI foundation` (refresh tests land with the new spec)
+
+### 19. Brand mark, wordmark & identity assets · needs a decision
+
+The mark shipped in spec 0009 is a gold football drawn as panel seams on a forest field. It says _football app_, which is the category, not the product, and at favicon size the seams collapse into a gear. The redraw says _your money lined up_: **dots in a real formation** on forest, gold for the ten outfield positions and paper (`#FFFDF8`) for the goalkeeper, the one position already secured. No ball, no crest, no naira sign. The naira stays out of the mark so the identity does not have to be redrawn when another currency arrives (Deferred), and it appears only in copy and amounts.
+**Two tiers, because eleven dots cannot shrink past 32 pixels.** Measured, not guessed: at 16px each dot of an eleven-dot formation is under one pixel and the shape is gone. So the system is a **primary mark**, three equal-spaced rows read from the top as a front three, a midfield three and a back four, with the paper keeper alone at the base, used at 48px and above, and a **reduced mark** of five dots, one per money zone, in the same stacked 3-2-1 rhythm with the same paper keeper at the base, used at 32px and under: favicon, tab bar, email footer.
+**Rows, not staggers.** The first drawing staggered each line off the centre by up to 62px against a row gap of about 100px, and the eye read eleven scattered dots instead of four units. Equal spacing inside each row and equal gaps between rows is what makes it a line-up; the formation is carried by the counts (3 / 3 / 4 / 1), not by offsets. Same palette, same grammar, same silhouette logic, so the two tiers read as one brand rather than two logos.
+**Voice:** quiet editorial. Melodrama sets the wordmark `Payday Pitch` in its 500 or 600 weight with tight tracking, sentence case, no all-caps sports shout; Switzer carries any supporting line; Teko stays a numeric face and never appears in the wordmark. One gold hairline is the only ornament. The mark and the wordmark must hold up alone, so the lockup is a convenience, not a crutch.
+**The dot grammar is the real deliverable, not the icon.** The same dot spacing becomes the loading state, the empty states, the share card backing (feature 18), the social card (features 15 and 16), and the pitch's own geometry, so the brand is one system rather than a picture pasted on a page. Its first full expression is the **line-up**: all eleven dots in a single row at one spacing, the paper keeper leading at the left. It is a secondary asset, not a mark, because it only survives at wide sizes: section divider, loading bar, wordmark underline, empty-state graphic.
+**Done when:** the primary mark reads as a formation at 512, 192, 64, and 48 pixels, and the reduced mark is the one used at 32 and 16, each checked as real rasterizations rather than a zoomed SVG; the maskable master scales its art to 0.72 or smaller, verified against the launcher viewport (a circle of radius 156 on the 512 canvas; at 0.72 the keeper, the deepest element, reaches radius 152, and at 0.76 it is cut) rather than against the 80 percent figure alone; `pnpm icons` regenerates the whole set from the new master SVGs with no manual PNG edits; `src/lib/brand-palette.ts` still holds the only hex values outside the artwork carve-out and `pnpm check:hex` passes; the wordmark renders through `next/font` with no fallback flash; light and dark versions of both marks exist and pass the contrast gate; the `/design-system` page shows both tiers at every size with the crop simulation next to them; the old ball is gone from the manifest, the emails, and the offline page.
+**Candidates to weigh:** satori or `@vercel/og` (server rendered social and share cards from the same SVG source) · Fontshare Tanker or Expose as a heavier display alternative if Melodrama reads too thin at wordmark size (both verified in the catalog) · a four-dot reduction (a front three over the keeper) if the 3-2-1 still reads as a dice face at 16px (measured: it dissolves into two gold bars above a white dot, which reads as tiers but not as five players) · Phosphor is explicitly not the mark's source; a brand glyph drawn from a Phosphor icon is the tell of a template identity.
+**Drawn proof:** `docs/assets/brand-candidate/` (gitignored scratch, kept to the chosen assets only: `mark-primary.svg` rasterized at 512/192/64, `mark-reduced.svg` at 32/16, `mark-maskable.svg` at 512, and `asset-lineup.svg` at 512 wide). Rejected arrangements were deleted, so the folder holds only what the spec starts from. It is a reference for the spec, not the shipped asset.
+
+- [ ] Design it (spec): `/architect brand mark & wordmark`
 
 ## Slice 1: First match (the core loop, also the walking skeleton)
 
@@ -306,26 +320,27 @@ Every surface the product needs, so the visual refresh in feature 4 has a checkl
 
 ### Reusable components
 
-| Component                                                  | State                                                          |
-| ---------------------------------------------------------- | -------------------------------------------------------------- |
-| Button, Card, Input, Badge, Tabs, Dialog, Tooltip, Toaster | built (feature 4)                                              |
-| MoneyText (every amount on screen)                         | built (feature 4)                                              |
-| StatTile (label, figure, delta)                            | built (feature 4)                                              |
-| ThemeToggle                                                | built (feature 4), default flips in the refresh                |
-| PitchView, PitchField, PlayerNode, zone math               | built (feature 4)                                              |
-| Sticker set (hand drawn player art)                        | built (feature 4), re-skinned in the refresh                   |
-| Icon set                                                   | built as vendored RuneIcons, Phosphor swap planned (feature 4) |
-| AmountField, EntryList, FormationPicker, PitchReview       | built (feature 6)                                              |
-| TacticsBoard, SpotEditor, SuggestionCard, TacticList       | built (feature 7)                                              |
-| AuthForm and its sign in, sign up, recover, reset variants | built (feature 5)                                              |
-| Radar chart (position balance, UI_2 style)                 | planned (feature 9)                                            |
-| Progress bar and fund months meter                         | planned (features 9, 7)                                        |
-| Planned versus actual bar pair                             | planned (feature 9)                                            |
-| Sparkline and season trend line                            | planned (features 9, 18)                                       |
-| Projection chart with assumption caption                   | planned (feature 18)                                           |
-| Empty state, loading skeleton, and error state primitives  | built per feature, promote to shared in the refresh            |
-| Position legend and bench strip                            | built (feature 4)                                              |
-| Share card canvas                                          | planned (feature 18)                                           |
+| Component                                                  | State                                                                                                                                                                  |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Button, Card, Input, Badge, Tabs, Dialog, Tooltip, Toaster | built (feature 4)                                                                                                                                                      |
+| MoneyText (every amount on screen)                         | built (feature 4)                                                                                                                                                      |
+| StatTile (label, figure, delta)                            | built (feature 4)                                                                                                                                                      |
+| ThemeToggle                                                | built (feature 4), light default shipped in spec 0009                                                                                                                  |
+| PitchView, PitchField, PlayerNode, zone math               | built (feature 4)                                                                                                                                                      |
+| Sticker set (hand drawn player art)                        | built (feature 4), re-painted in spec 0009                                                                                                                             |
+| Icon set                                                   | Phosphor is the app level set (spec 0009), lucide in shadcn internals only                                                                                             |
+| App mark, wordmark, and lockup                             | planned (feature 19): two tiers, the 11-dot formation primary and the 3-2-1 reduction, plus the single-row line-up asset, replacing the ball mark shipped in spec 0009 |
+| AmountField, EntryList, FormationPicker, PitchReview       | built (feature 6)                                                                                                                                                      |
+| TacticsBoard, SpotEditor, SuggestionCard, TacticList       | built (feature 7)                                                                                                                                                      |
+| AuthForm and its sign in, sign up, recover, reset variants | built (feature 5)                                                                                                                                                      |
+| Radar chart (position balance, UI_2 style)                 | planned (feature 9)                                                                                                                                                    |
+| Progress bar and fund months meter                         | planned (features 9, 7)                                                                                                                                                |
+| Planned versus actual bar pair                             | planned (feature 9)                                                                                                                                                    |
+| Sparkline and season trend line                            | planned (features 9, 18)                                                                                                                                               |
+| Projection chart with assumption caption                   | planned (feature 18)                                                                                                                                                   |
+| Empty state, loading skeleton, and error state primitives  | built per feature, still to promote onto the dot grammar (19)                                                                                                          |
+| Position legend and bench strip                            | built (feature 4)                                                                                                                                                      |
+| Share card canvas                                          | planned (feature 18)                                                                                                                                                   |
 
 ## Tool list review
 

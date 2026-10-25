@@ -63,6 +63,9 @@
   /* Gold in light is a tint surface, never a fill; the text on it is brown gold. */
   --accent: var(--gold-50);
   --accent-foreground: var(--gold-700);
+  /* Gold used AS text on a neutral surface. --accent is a fill (or a tint in
+     light) and cannot be read as type, so accent colored copy has its own. */
+  --accent-text: var(--gold-700);
   --destructive: var(--terracotta-700);
   --destructive-foreground: #ffffff;
   --success: var(--forest-600);
@@ -90,6 +93,7 @@
   --muted-foreground: #ada99c;
   --accent: var(--gold-200);
   --accent-foreground: var(--ink);
+  --accent-text: var(--gold-200);
   /* Amendment A1: error TEXT in dark rides terracotta-300 so it clears AA on
      its own tint; terracotta-400 stays for artwork and plain fills. */
   --destructive: var(--terracotta-300);
@@ -119,6 +123,7 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-accent-text: var(--accent-text);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
@@ -164,7 +169,10 @@
 }
 
 /* Headings speak Melodrama (never italic, it has no italic cut). */
-h1, h2, h3, h4 {
+h1,
+h2,
+h3,
+h4 {
   font-family: var(--font-heading);
   font-weight: 500;
 }

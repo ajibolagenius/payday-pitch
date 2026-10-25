@@ -90,7 +90,7 @@ export function PitchView({
 
       {/* The bench strip sits below the grass, visually apart from the eleven. */}
       <div className="bg-muted relative mx-auto mt-1 h-14 w-full max-w-72 rounded-md sm:max-w-96 md:max-w-lg">
-        <p className="text-muted-foreground absolute top-1.5 left-2 text-xs font-medium">
+        <p className="font-accent text-muted-foreground absolute top-1.5 left-2 text-sm font-medium">
           Bench
         </p>
         {bench.map((player) => (

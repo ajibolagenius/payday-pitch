@@ -42,6 +42,8 @@ export const CONTRAST_PAIRS: TokenPair[] = [
   both("card", "muted-foreground", 4.5, "Captions on surfaces"),
   both("primary", "primary-foreground", 4.5, "Filled buttons, key actions"),
   both("accent", "accent-foreground", 4.5, "Highlight fills"),
+  both("background", "accent-text", 4.5, "Links and accent copy on canvas"),
+  both("card", "accent-text", 4.5, "Links and accent copy on cards"),
   both("secondary", "secondary-foreground", 4.5, "Quiet chips and tabs"),
   both("muted", "muted-foreground", 4.5, "Bench strip, helper blocks"),
   both("popover", "popover-foreground", 4.5, "Menus and dialogs"),

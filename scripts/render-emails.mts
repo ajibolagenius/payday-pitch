@@ -9,17 +9,11 @@ import { render } from "@react-email/render"
 
 import { ConfirmationEmail } from "../src/emails/confirmation-email"
 import { RecoveryEmail } from "../src/emails/recovery-email"
+import { BRAND } from "../src/lib/brand-palette"
 
-// Email clients need inline hex; these mirror the design tokens in
-// src/app/globals.css (--pitch-green, --paper, --ink, --card, --muted-foreground).
-const palette = {
-  pitch: "#1b4638",
-  ink: "#141414",
-  paper: "#fafafa",
-  card: "#ffffff",
-  muted: "#71717a",
-  onPitch: "#ffffff",
-}
+// Email clients need inline hex, so the values come from the one brand palette
+// (src/lib/brand-palette.ts), which mirrors the tokens in src/app/globals.css.
+const palette = BRAND
 
 const outDir = path.resolve(import.meta.dirname, "../supabase/templates")
 await mkdir(outDir, { recursive: true })

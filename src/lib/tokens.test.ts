@@ -132,6 +132,7 @@ describe("the bright gold rule", () => {
       "card-foreground",
       "muted-foreground",
       "accent-foreground",
+      "accent-text",
     ]) {
       expect(brightGolds, `--${token}`).not.toContain(resolve(token, light))
     }

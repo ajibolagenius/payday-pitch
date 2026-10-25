@@ -1,5 +1,7 @@
 import { expect, test, type BrowserContext, type Page } from "@playwright/test"
 
+import { BRAND } from "../../src/lib/brand-palette"
+
 // Spec 0001: phone layout, manifest, and the service worker's offline rules.
 // Page copy is placeholder until features 5 and 16, so offline checks compare
 // against what the page showed online instead of asserting its text.
@@ -62,38 +64,53 @@ test.describe("phone layout", () => {
     })
   }
 
-  test("text renders in Space Grotesk", async ({ page }) => {
-    await page.goto("/")
-    await page.evaluate(() => document.fonts.ready)
-    expect(
-      await page.evaluate(() => getComputedStyle(document.body).fontFamily),
-    ).toMatch(/^"Space Grotesk"/)
-    expect(
-      await page.evaluate(() => document.fonts.check('1em "Space Grotesk"')),
-    ).toBe(true)
-  })
-})
-
-test.describe("manifest", () => {
-  test("pages link a standalone manifest that opens /app", async ({
+  test("type is vendored locally, and browser chrome reads the brand palette", async ({
     page,
     request,
   }) => {
+    const remote: string[] = []
+    page.on("request", (req) => {
+      if (/fontshare|gstatic|googleapis/.test(req.url())) remote.push(req.url())
+    })
     await page.goto("/")
+    await page.evaluate(() => document.fonts.ready)
+    // Every role variable must name a face that really loaded from /_next.
+    const faces = await page.evaluate(async () => {
+      const root = getComputedStyle(document.documentElement)
+      const first = (value: string) =>
+        value.split(",")[0]?.trim().replace(/^"|"$/g, "")
+      const variable = (name: string) => first(root.getPropertyValue(name))
+      const roles = ["--font-switzer", "--font-melodrama", "--font-tabular"]
+      const loaded = await Promise.all(
+        roles.map((r) => document.fonts.load(`16px ${variable(r)}`)),
+      )
+      return {
+        counts: loaded.map((l) => l.length),
+        body: first(getComputedStyle(document.body).fontFamily),
+        sans: variable("--font-switzer"),
+      }
+    })
+    expect(faces.counts, "a font variable names no loaded face").toEqual([
+      1, 1, 1,
+    ])
+    expect(faces.body).toBe(faces.sans)
+    expect(remote, `font requests left the app: ${remote.join(" ")}`).toEqual(
+      [],
+    )
+
     await expect(page.locator('link[rel="manifest"]')).toHaveAttribute(
       "href",
       "/manifest.webmanifest",
     )
     await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute(
       "content",
-      "#1B4638",
+      BRAND.forest,
     )
-
     const manifest = await (await request.get("/manifest.webmanifest")).json()
     expect(manifest).toMatchObject({
       start_url: "/app",
       display: "standalone",
-      theme_color: "#1B4638",
+      theme_color: BRAND.forest,
     })
     expect(
       manifest.icons.some(

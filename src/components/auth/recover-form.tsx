@@ -44,7 +44,7 @@ export function RecoverForm() {
       <div className="text-sm">
         <Link
           href="/sign-in"
-          className="text-accent underline underline-offset-4"
+          className="text-accent-text underline underline-offset-4"
         >
           Back to sign in
         </Link>

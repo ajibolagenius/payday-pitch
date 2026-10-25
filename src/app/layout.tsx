@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next"
 import localFont from "next/font/local"
 import { SwRegister } from "@/components/sw-register"
 import { Providers } from "@/components/providers"
-import { PITCH_GREEN } from "@/lib/brand"
+import { BRAND } from "@/lib/brand-palette"
 import "./globals.css"
 
 // Spec 0009 type contract: four Fontshare faces, one variable file per family
@@ -38,10 +38,13 @@ const sans = localFont({
   ],
 })
 
+// Tabular is the only vendored face with a naira glyph, and the browser hands
+// U+20A6 to any later family in the stack, which paints it as two overlapping
+// marks. Keep this list to the one family so amounts own their own sign.
 const money = localFont({
   variable: "--font-tabular",
   display: "swap",
-  fallback: ["Helvetica", "Arial", "sans-serif"],
+  adjustFontFallback: false,
   src: [
     {
       path: "./styles/fonts/tabular-variable.woff2",
@@ -71,7 +74,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: PITCH_GREEN,
+  themeColor: BRAND.forest,
 }
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

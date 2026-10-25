@@ -27,7 +27,7 @@ export function SuggestionCard({
     >
       <h2
         id="tactic-suggestion"
-        className="text-accent text-lg font-bold tracking-tight"
+        className="text-accent-text text-lg font-bold tracking-tight"
       >
         {comfortable
           ? `Your fund covers ${Math.min(fundMonthsValue, 99)} months`

@@ -1,8 +1,7 @@
 // Artwork exception (spec 0005): this directory may use literal colors for
-// the grass, defined once here and used nowhere else.
-
-const GRASS_DARK = "#1e5138"
-const GRASS_LIGHT = "#22603f"
+// the grass, defined once here and used nowhere else. Spec 0009 moves the
+// values to the raw layer (--grass-a, --grass-b) so the pair test can reach
+// them; SVG fill attributes cannot read vars, so they go through style.
 
 const STRIPE_HEIGHT = 133 / 13 // 13 alternating bands over the whole field
 
@@ -21,7 +20,9 @@ export function PitchField() {
           y={i * STRIPE_HEIGHT}
           width={100}
           height={STRIPE_HEIGHT}
-          fill={i % 2 === 0 ? GRASS_DARK : GRASS_LIGHT}
+          style={{
+            fill: i % 2 === 0 ? "var(--grass-a)" : "var(--grass-b)",
+          }}
         />
       ))}
 

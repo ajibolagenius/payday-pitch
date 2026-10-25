@@ -16,12 +16,13 @@
     "icons": "node scripts/generate-icons.mjs",
     "emails:render": "tsx scripts/render-emails.mts",
     "lint": "eslint . --max-warnings 0",
-    "check:hex": "! grep -rInE '#[0-9a-fA-F]{3,8}\\b' src --include='*.ts' --include='*.tsx' --exclude-dir=pitch --exclude-dir=stickers --exclude=brand.ts",
+    "check:hex": "! grep -rInE '#[0-9a-fA-F]{3,8}\\b' src --include='*.ts' --include='*.tsx' --exclude-dir=pitch --exclude-dir=stickers --exclude=brand-palette.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "lefthook install"
   },
   "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.118.0",
     "class-variance-authority": "^0.7.1",

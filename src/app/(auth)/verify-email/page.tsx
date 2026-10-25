@@ -21,7 +21,7 @@ export default async function VerifyEmailPage() {
         </p>
         <Link
           href="/sign-in"
-          className="text-accent text-sm underline underline-offset-4"
+          className="text-accent-text text-sm underline underline-offset-4"
         >
           Go to sign in
         </Link>
