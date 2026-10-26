@@ -1,6 +1,7 @@
 import Link from "next/link"
 
 import { SignInForm } from "@/components/auth/sign-in-form"
+import { BrandMark, Wordmark } from "@/components/brand"
 
 import { EXPIRED_LINK_MESSAGE } from "@/features/auth/messages"
 
@@ -15,9 +16,10 @@ export default async function SignInPage(props: {
     <>
       <Link
         href="/"
-        className="text-muted-foreground mx-auto w-fit text-sm underline underline-offset-4"
+        className="text-muted-foreground mx-auto flex w-fit items-center gap-2 text-sm underline underline-offset-4"
       >
-        Payday Pitch
+        <BrandMark tier="reduced" chip="auto" className="size-7" />
+        <Wordmark />
       </Link>
       {reason === "expired" ? (
         <p

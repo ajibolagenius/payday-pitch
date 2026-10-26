@@ -1,5 +1,9 @@
 "use client"
 
+/* eslint-disable @next/next/no-img-element -- the brand raster ladder must
+   load the generated PNG files at their exact intrinsic sizes (spec 0010
+   AC-3); next/image would resize them and defeat the Playwright size proof. */
+
 import { useSyncExternalStore, useState } from "react"
 import { useTheme } from "next-themes"
 import { toast } from "sonner"
@@ -44,6 +48,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { FORMATIONS } from "@/domain/formations"
+import { BrandMark, Lineup, Wordmark } from "@/components/brand"
 import { CONTRAST_PAIRS } from "@/lib/tokens"
 
 // Demo constants only (spec 0005 value sourcing): nothing here is user data.
@@ -60,7 +65,13 @@ const TOKEN_PAIRS = CONTRAST_PAIRS.map((pair, index) => ({
   note: pair.use,
   over: pair.over,
   text: pair.text,
+  // Graphics pairs (WCAG 1.4.11, min 3) carry no text sample; the Color
+  // section shows them as bars, the Brand section proves them as marks.
+  graphics: pair.min < 4.5,
 }))
+
+// The raster ladder (spec 0010 AC-3), mirroring the generate-icons jobs.
+const BRAND_RASTER_SIZES = [512, 192, 180, 64, 48, 32, 16] as const
 
 const TYPE_ROLES = [
   {
@@ -140,7 +151,14 @@ export function DesignSystemDemo() {
   // server rendered styles in the DOM.
   const theme = mounted && resolvedTheme === "dark" ? "dark" : "light"
   const visiblePairs = TOKEN_PAIRS.filter(
-    (pair) => pair.theme === "both" || (mounted && pair.theme === theme),
+    (pair) =>
+      !pair.graphics &&
+      (pair.theme === "both" || (mounted && pair.theme === theme)),
+  )
+  const graphicsPairs = TOKEN_PAIRS.filter(
+    (pair) =>
+      pair.graphics &&
+      (pair.theme === "both" || (mounted && pair.theme === theme)),
   )
 
   const amounts = formation.positions.map((p) => ({
@@ -169,8 +187,154 @@ export function DesignSystemDemo() {
 
       <div className="mt-10 space-y-12">
         <Section
+          title="Brand"
+          description="The formation system (spec 0010): dots on a chip. Primary tier at 48 px and above, reduced tier below, forest chip for light surfaces and paper for dark. Rasters come from pnpm icons, the lockup from pnpm brand:lockup."
+        >
+          <div className="border-border rounded-lg border p-4">
+            <div
+              data-testid="brand-chip-forest"
+              className="flex flex-wrap items-end gap-6"
+            >
+              <div className="flex items-center gap-3">
+                <BrandMark tier="primary" chip="forest" className="size-16" />
+                <BrandMark tier="reduced" chip="forest" className="size-16" />
+                <Wordmark className="text-xl" />
+              </div>
+              <div className="flex items-center gap-2">
+                <BrandMark tier="primary" chip="forest" className="size-12" />
+                <BrandMark tier="reduced" chip="forest" className="size-12" />
+                <BrandMark
+                  tier="primary"
+                  chip="forest"
+                  className="size-[64px]"
+                />
+                <BrandMark
+                  tier="reduced"
+                  chip="forest"
+                  className="size-[64px]"
+                />
+                <BrandMark
+                  tier="primary"
+                  chip="forest"
+                  className="size-[48px]"
+                />
+                <BrandMark tier="reduced" chip="forest" className="size-8" />
+                <BrandMark tier="reduced" chip="forest" className="size-6" />
+                <BrandMark tier="reduced" chip="forest" className="size-4" />
+              </div>
+            </div>
+            <div
+              data-testid="brand-chip-paper"
+              className="mt-4 flex flex-wrap items-end gap-6 border-t border-white/10 pt-4"
+              style={{ backgroundColor: "var(--night)" }}
+            >
+              <div className="flex items-center gap-3">
+                <BrandMark tier="primary" chip="paper" className="size-16" />
+                <BrandMark tier="reduced" chip="paper" className="size-16" />
+                <Wordmark
+                  className="text-xl"
+                  style={{ color: "var(--paper-50)" }}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <BrandMark tier="primary" chip="paper" className="size-12" />
+                <BrandMark tier="reduced" chip="paper" className="size-12" />
+                <BrandMark
+                  tier="primary"
+                  chip="paper"
+                  className="size-[64px]"
+                />
+                <BrandMark
+                  tier="reduced"
+                  chip="paper"
+                  className="size-[64px]"
+                />
+                <BrandMark
+                  tier="primary"
+                  chip="paper"
+                  className="size-[48px]"
+                />
+                <BrandMark tier="reduced" chip="paper" className="size-8" />
+                <BrandMark tier="reduced" chip="paper" className="size-6" />
+                <BrandMark tier="reduced" chip="paper" className="size-4" />
+              </div>
+            </div>
+          </div>
+          <div
+            data-testid="brand-rasters"
+            className="mt-4 flex flex-wrap items-end gap-4"
+          >
+            {BRAND_RASTER_SIZES.map((size) => (
+              <figure key={size} className="text-center">
+                <img
+                  src={
+                    size === 512
+                      ? "/icons/icon-512.png"
+                      : size === 192
+                        ? "/icons/icon-192.png"
+                        : size === 180
+                          ? "/apple-icon.png"
+                          : `/icons/favicon-${size}.png`
+                  }
+                  width={size}
+                  height={size}
+                  alt=""
+                  className="mx-auto"
+                  style={{ width: size, height: size }}
+                />
+                <figcaption className="text-muted-foreground font-mono text-xs">
+                  {size}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+          <div className="mt-4 flex flex-wrap items-end gap-6">
+            <div
+              data-testid="brand-maskable"
+              className="relative size-32 overflow-hidden rounded-full"
+              style={{ backgroundColor: "var(--forest-700)" }}
+            >
+              <img
+                src="/icons/icon-maskable-512.png"
+                width={128}
+                height={128}
+                alt=""
+                className="size-full"
+              />
+              {/* The safe circle, radius 156 of 512, what a launcher may keep. */}
+              <span
+                className="pointer-events-none absolute rounded-full border-2 border-dashed border-white/70"
+                style={{
+                  inset: `${(1 - 312 / 512) * 50}%`,
+                  aspectRatio: "1",
+                }}
+              />
+            </div>
+            <p className="text-muted-foreground max-w-xs text-sm">
+              Maskable master under the launcher crop: the formation rides at
+              0.72 inside the dashed safe circle, keeper edge included.
+            </p>
+          </div>
+          <div className="mt-4 flex flex-wrap items-center gap-8">
+            <img
+              src="/brand/lockup-horizontal.svg"
+              width={368}
+              height={80}
+              alt="Payday Pitch lockup"
+              data-testid="brand-lockup"
+              className="max-w-full"
+            />
+            <Lineup
+              data-testid="brand-lineup"
+              className="h-9 w-auto"
+              style={{ width: 128 }}
+            />
+          </div>
+        </Section>
+
+        <Section
           title="Color"
-          description="Semantic tokens only. Each card shows a foreground on its background; both must clear WCAG AA, and a unit test on the token values enforces it."
+          description="Semantic tokens only. Each card shows a foreground on its background; text pairs clear WCAG AA and a unit test enforces it. The bars at the bottom are graphics only pairs (3:1), proved by the marks in the Brand section."
         >
           <div className="grid gap-3 sm:grid-cols-2">
             {visiblePairs.map((pair) => (
@@ -205,6 +369,25 @@ export function DesignSystemDemo() {
               }}
             />
           </p>
+          {/* Graphics pairs (WCAG 1.4.11, 3:1): swatch bars, no text on them.
+              The marks that prove them live in the Brand section above. */}
+          <div className="mt-4 flex flex-wrap gap-3">
+            {graphicsPairs.map((pair) => (
+              <div key={pair.key} className="w-40">
+                <div
+                  data-testid="graphics-pair"
+                  className="h-8 rounded-md border border-black/10"
+                  style={{
+                    backgroundColor: `var(--${pair.bg})`,
+                    backgroundImage: `linear-gradient(135deg, var(--${pair.fg}) 0 65%, transparent 65%)`,
+                  }}
+                />
+                <p className="text-muted-foreground mt-1 font-mono text-xs">
+                  {pair.label} · 3:1
+                </p>
+              </div>
+            ))}
+          </div>
         </Section>
 
         <Section

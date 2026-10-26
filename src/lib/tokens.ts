@@ -124,4 +124,34 @@ export const CONTRAST_PAIRS: TokenPair[] = [
     theme: "both",
     over: { token: "card", alpha: 0.2 },
   },
+  // Spec 0010: the formation mark chips. Graphic objects, so the 3:1 floor
+  // of WCAG 1.4.11 applies. Raw values are theme independent, hence "both".
+  {
+    background: "forest-700",
+    foreground: "gold-200",
+    min: 3,
+    use: "Outfield dots on the forest mark chip",
+    theme: "both",
+  },
+  {
+    background: "forest-700",
+    foreground: "paper-50",
+    min: 3,
+    use: "Keeper on the forest mark chip",
+    theme: "both",
+  },
+  {
+    background: "paper-50",
+    foreground: "gold-600",
+    min: 3,
+    use: "Outfield dots on the paper mark chip",
+    theme: "both",
+  },
+  {
+    background: "paper-50",
+    foreground: "forest-700",
+    min: 3,
+    use: "Keeper on the paper mark chip",
+    theme: "both",
+  },
 ]

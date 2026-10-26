@@ -51,6 +51,7 @@ yarn-error.log*
 .waveform-cache/
 renders/
 **/.media/recipes/*@v*/
+.playwright-cli
 
 # typescript
 *.tsbuildinfo

@@ -7,6 +7,8 @@ import {
   Link,
 } from "@react-email/components"
 
+import { EmailLockup, EmailMark } from "@/emails/brand-art"
+
 // Supabase substitutes these at send time; the renderer must never touch them.
 // GoTrue fills ConfirmationURL for both link types (confirm and recovery).
 // RecoveryURL, RedirectURL and ConfirmationToken come back empty in the local
@@ -19,6 +21,7 @@ export type EmailProps = {
   cta: string
   href: string
   pitch: string
+  gold: string
   ink: string
   card: string
   paper: string
@@ -27,8 +30,19 @@ export type EmailProps = {
 }
 
 export function AuthEmail(props: EmailProps) {
-  const { heading, body, cta, href, pitch, ink, card, paper, muted, onPitch } =
-    props
+  const {
+    heading,
+    body,
+    cta,
+    href,
+    pitch,
+    gold,
+    ink,
+    card,
+    paper,
+    muted,
+    onPitch,
+  } = props
   return (
     <Html lang="en">
       <Body
@@ -48,15 +62,11 @@ export function AuthEmail(props: EmailProps) {
               border: `1px solid ${muted}`,
             }}
           >
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                borderRadius: "10px",
-                backgroundColor: pitch,
-                marginBottom: "20px",
-              }}
+            <EmailLockup
+              width={180}
+              colors={{ chip: pitch, dots: gold, keeper: card, word: ink }}
             />
+            <div style={{ height: "20px" }} />
             <Heading
               style={{
                 margin: "0 0 12px",
@@ -102,6 +112,23 @@ export function AuthEmail(props: EmailProps) {
             >
               If the button doesn&apos;t work, copy this address into your
               browser: <span style={{ wordBreak: "break-all" }}>{href}</span>
+            </Text>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              marginTop: "20px",
+              padding: "0 4px",
+            }}
+          >
+            <EmailMark
+              size={28}
+              colors={{ chip: pitch, dots: gold, keeper: card }}
+            />
+            <Text style={{ margin: 0, fontSize: "12px", color: muted }}>
+              Payday Pitch. Line up your pay, payday by payday.
             </Text>
           </div>
         </Container>

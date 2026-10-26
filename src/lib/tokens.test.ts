@@ -138,3 +138,63 @@ describe("the bright gold rule", () => {
     }
   })
 })
+
+// Spec 0010 AC-7 and AC-4: the formation mark chips. The dots and the keeper
+// are graphic objects, so they owe 3:1 against their own chip, and the auto
+// chip the headers read must land on the forest pair in light and the paper
+// pair in dark. The per theme loop above already measures each pair; what is
+// pinned here is that all four exist and point at the right tokens.
+describe("the formation mark chips (spec 0010 AC-7)", () => {
+  const markPairs = CONTRAST_PAIRS.filter((pair) =>
+    pair.use.includes("mark chip"),
+  )
+
+  it("proves four pairs at the 3:1 graphic floor, in both themes", () => {
+    expect(markPairs).toHaveLength(4)
+    for (const pair of markPairs) {
+      expect(pair.min, pair.use).toBe(3)
+      expect(pair.theme, pair.use).toBe("both")
+    }
+  })
+
+  it("gives every chip one dots pair and one keeper pair", () => {
+    const onForest = markPairs
+      .filter((pair) => pair.background === "forest-700")
+      .map((pair) => pair.foreground)
+      .sort()
+    const onPaper = markPairs
+      .filter((pair) => pair.background === "paper-50")
+      .map((pair) => pair.foreground)
+      .sort()
+    expect(onForest).toEqual(["gold-200", "paper-50"])
+    expect(onPaper).toEqual(["forest-700", "gold-600"])
+  })
+
+  it("swaps the auto chip between the two proven chips by theme", () => {
+    const want = {
+      light: {
+        chip: "forest-700",
+        dots: "gold-200",
+        keeper: "paper-50",
+      },
+      dark: { chip: "paper-50", dots: "gold-600", keeper: "forest-700" },
+    } as const
+    for (const [theme, expected] of Object.entries(want)) {
+      const blocks = THEMES[theme as keyof typeof THEMES]
+      for (const [slot, token] of Object.entries(expected)) {
+        expect(
+          resolve(`brand-chip${slot === "chip" ? "" : `-${slot}`}`, blocks),
+          `${theme} --brand-chip-${slot}`,
+        ).toBe(resolve(token, blocks))
+      }
+    }
+  })
+
+  it("keeps the chip values theme independent, so the mark reads alike", () => {
+    for (const token of ["forest-700", "paper-50", "gold-200", "gold-600"]) {
+      expect(resolve(token, THEMES.dark), `--${token}`).toBe(
+        resolve(token, THEMES.light),
+      )
+    }
+  })
+})
