@@ -15,6 +15,7 @@
     "test:e2e": "playwright test",
     "icons": "node scripts/generate-icons.mjs",
     "emails:render": "tsx scripts/render-emails.mts",
+    "brand:lockup": "tsx scripts/render-lockup.mts",
     "lint": "eslint . --max-warnings 0",
     "check:hex": "! grep -rInE '#[0-9a-fA-F]{3,8}\\b' src --include='*.ts' --include='*.tsx' --exclude-dir=pitch --exclude-dir=stickers --exclude=brand-palette.ts",
     "format": "prettier --write .",
@@ -58,6 +59,7 @@
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.4.2",
     "eslint-config-prettier": "^10.1.8",
+    "fontkit": "^2.0.4",
     "jsdom": "^30.1.3",
     "lefthook": "^2.2.2",
     "prettier": "^3.9.10",
@@ -67,7 +69,8 @@
     "tsx": "^4.23.15",
     "typescript": "5.9.3",
     "vite": "^8.3.4",
-    "vitest": "^5.0.5"
+    "vitest": "^5.0.5",
+    "wawoff2": "^2.0.1"
   },
   "engines": {
     "node": "24.x"

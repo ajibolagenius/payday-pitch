@@ -29,7 +29,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 16  | Landing page                         | Slice 7    | planned     |
 | 17  | Production plans & limits            | Slice 7    | planned     |
 | 18  | Matchday experience                  | Slice 4    | planned     |
-| 19  | Brand mark, wordmark & identity      | Foundation | planned     |
+| 19  | Brand mark, wordmark & identity      | Foundation | in-progress |
 
 ## Foundations
 
@@ -99,7 +99,7 @@ The system shipped in spec 0005 (tokens, two layer theming, component kit, pitch
 - [ ] Verify it: `/check verify design system & visual identity` (spec 0005 AC-1 to AC-8 plus the refresh acceptance criteria)
 - [x] Test it: `/test design system & UI foundation` (refresh tests land with the new spec)
 
-### 19. Brand mark, wordmark & identity assets · needs a decision
+### 19. Brand mark, wordmark & identity assets
 
 The mark shipped in spec 0009 is a gold football drawn as panel seams on a forest field. It says _football app_, which is the category, not the product, and at favicon size the seams collapse into a gear. The redraw says _your money lined up_: **dots in a real formation** on forest, gold for the ten outfield positions and paper (`#FFFDF8`) for the goalkeeper, the one position already secured. No ball, no crest, no naira sign. The naira stays out of the mark so the identity does not have to be redrawn when another currency arrives (Deferred), and it appears only in copy and amounts.
 **Two tiers, because eleven dots cannot shrink past 32 pixels.** Measured, not guessed: at 16px each dot of an eleven-dot formation is under one pixel and the shape is gone. So the system is a **primary mark**, three equal-spaced rows read from the top as a front three, a midfield three and a back four, with the paper keeper alone at the base, used at 48px and above, and a **reduced mark** of five dots, one per money zone, in the same stacked 3-2-1 rhythm with the same paper keeper at the base, used at 32px and under: favicon, tab bar, email footer.
@@ -110,7 +110,14 @@ The mark shipped in spec 0009 is a gold football drawn as panel seams on a fores
 **Candidates to weigh:** satori or `@vercel/og` (server rendered social and share cards from the same SVG source) · Fontshare Tanker or Expose as a heavier display alternative if Melodrama reads too thin at wordmark size (both verified in the catalog) · a four-dot reduction (a front three over the keeper) if the 3-2-1 still reads as a dice face at 16px (measured: it dissolves into two gold bars above a white dot, which reads as tiers but not as five players) · Phosphor is explicitly not the mark's source; a brand glyph drawn from a Phosphor icon is the tell of a template identity.
 **Drawn proof:** `docs/assets/brand-candidate/` (gitignored scratch, kept to the chosen assets only: `mark-primary.svg` rasterized at 512/192/64, `mark-reduced.svg` at 32/16, `mark-maskable.svg` at 512, and `asset-lineup.svg` at 512 wide). Rejected arrangements were deleted, so the folder holds only what the spec starts from. It is a reference for the spec, not the shipped asset.
 
-- [ ] Design it (spec): `/architect brand mark & wordmark`
+- [x] Design it (spec): `/architect brand mark & wordmark` (spec [0010](../specs/0010-brand-mark-wordmark-assets/index.md), the formation system: two tiers, both chip variants, generated lockup, line-up asset, pipeline swap)
+- [x] Build it: `/develop brand mark & wordmark` (spec 0010, branch `feat/brand-mark-wordmark`, precondition: spec 0009 merged and verified) · code in `public/icons/`, `public/brand/`, `src/components/brand/`, `src/lib/brand-art.ts`, `scripts/render-lockup.mts`
+  - [x] Masters, reduced master and maskable at 0.72, extended `pnpm icons` jobs (AC-1, AC-2, AC-3)
+  - [x] `src/components/brand/` set, `render-lockup.mts` with `wawoff2` plus `fontkit` (amended at build, opentype.js cannot read a variable woff2), pair contract gains the four mark pairs (AC-4, AC-5, AC-6, AC-7)
+  - [x] Consumer swap: emails, offline page, marketing and app headers, palette gains `gold` (AC-4, AC-5, AC-6, AC-9)
+  - [x] `/design-system` brand grid, Playwright raster proof, full gate set, old ball deleted (AC-1, AC-2, AC-8, AC-9)
+- [ ] Verify it: `/check verify brand mark & wordmark` (spec 0010 AC-1 to AC-9)
+- [x] Test it: `/test brand mark & wordmark` (76 unit tests over geometry, chips and theme swap, palette mirror, generated lockup, email art; 4 mark pairs added to the token contract; 6 tests added to the browser brand grid. Found and fixed three bugs: the lockup em size double counted the scale, so drawn tracking was ten times loose; the emitted scale rounded to 0.1, dropping the pinned 72 px cap to 70; `<Wordmark>` let a caller className replace the brand setting)
 
 ## Slice 1: First match (the core loop, also the walking skeleton)
 

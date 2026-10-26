@@ -6,6 +6,7 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 
 import { SignOutButton } from "@/components/auth/sign-out-button"
+import { BrandMark, Wordmark } from "@/components/brand"
 import { Walk } from "@/components/walk/walk"
 import { loadWalk } from "@/features/match/queries"
 import { createSupabaseServerClient } from "@/lib/supabase/server"
@@ -25,9 +26,11 @@ export default async function AppHome() {
       <div className="flex items-center justify-between gap-3">
         <Link
           href="/"
-          className="text-muted-foreground text-sm underline underline-offset-4"
+          className="text-muted-foreground flex items-center gap-2 text-sm underline underline-offset-4"
         >
-          Payday Pitch
+          {/* Below 48 px the reduced tier is mandatory (AC invariant). */}
+          <BrandMark tier="reduced" chip="auto" className="size-7" />
+          <Wordmark />
         </Link>
         {/* The board is the loop's second door: the walk plays a shape, the
             board makes one yours. Same link styling as the shipped nav. */}

@@ -21,6 +21,7 @@ export default defineConfig({
       use: { ...devices["Pixel 7"] },
       testIgnore: [
         "**/design-system.spec.ts",
+        "**/brand.spec.ts",
         "**/auth.spec.ts",
         "**/walk.spec.ts",
         "**/tactics.spec.ts",
@@ -29,7 +30,7 @@ export default defineConfig({
     {
       name: "design-system",
       use: { ...devices["Pixel 7"], baseURL: DEV_ORIGIN },
-      testMatch: ["**/design-system.spec.ts"],
+      testMatch: ["**/design-system.spec.ts", "**/brand.spec.ts"],
     },
     {
       // Auth runs against the dev server on 127.0.0.1:3000 because SITE_URL,

@@ -73,6 +73,12 @@
   --border: var(--paper-300);
   --input: #c4beab;
   --ring: var(--gold-700);
+  /* Brand mark chip (spec 0010 surface map): forest in light, paper in dark.
+     Artwork reads raw vars; this is the one semantic switch the mark's own
+     theme swap uses, via chip="auto". */
+  --brand-chip: var(--forest-700);
+  --brand-chip-dots: var(--gold-200);
+  --brand-chip-keeper: var(--paper-50);
 }
 
 /* Dark swap: forest tinted night, kept as a theme with its own written out
@@ -104,6 +110,9 @@
   --input: #454a3d;
   --ring: var(--gold-200);
   --pitch-line: rgb(255 255 255 / 0.75);
+  --brand-chip: var(--paper-50);
+  --brand-chip-dots: var(--gold-600);
+  --brand-chip-keeper: var(--forest-700);
 }
 
 /* Tailwind v4 maps these to utilities (bg-background, text-card-foreground...).

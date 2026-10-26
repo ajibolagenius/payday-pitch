@@ -4,11 +4,14 @@
 // only other place a brand color is written as a literal, and it mirrors
 // layer 1 of that file.
 const FOREST = "#1C4534"
+const GOLD = "#F0C75E"
 
 export const BRAND = {
   /** forest 700, the brand hue: theme color, manifest, filled bands. */
   forest: FOREST,
-  /** The six inline slots the auth emails take. */
+  /** gold 200, the formation dots on a forest chip (spec 0010 emails). */
+  gold: GOLD,
+  /** The seven inline slots the auth emails take. */
   pitch: FOREST,
   ink: "#241F17",
   card: "#FFFDF8",
