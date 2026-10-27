@@ -6,6 +6,13 @@ A mobile friendly, installable web app that helps salary earners build wealth by
 
 TypeScript strict, Node 24 (`.nvmrc`, `engines`), pnpm 11, Next.js 16 App Router with Turbopack, React 19, Tailwind CSS v4 (tokens in `src/app/globals.css`). Supabase (Postgres, RLS, Auth), Zod 4, shadcn/ui, Vitest, Playwright: decided in spec 0001, all installed and in use. Full table: [spec 0001](docs/specs/0001-stack-architecture/index.md).
 
+## Large files
+
+- When working with a large document, retrieve only the relevant excerpts using search or targeted line ranges; do not load the entire document.
+- All AI agents, regardless of provider or tool, must never read `docs/research/fresh-product-brand-mobile-research.md` whole (943 lines, about 31k tokens). Grep it for what you need, or read only the lines you need with `offset` and `limit`.
+- All agents must check for large-file guidance before reading a document and follow any specified limits.
+
+
 ## Build approach
 
 Tracer Bullet: one thin, real thread through the whole loop first, then each slice thickens one segment end to end. Workflow level Beta (`/check verify`, then `/test`). From [the scope header](docs/scope/scope.md).
