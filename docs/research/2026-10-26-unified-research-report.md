@@ -1,5 +1,7 @@
 # Payday Pitch: unified research report
 
+**Working follow up:** [Three focused briefs and the founder decision queue](../direction/index.md). Use those for the next steps; this report retains the full research and recommendations.
+
 **Date:** 26 October 2026
 **Status:** Consolidated research and recommendation. No code was changed. Nothing here is an approved spec until it goes through `/scope` and `/architect`.
 **Brief:** [docs/prompt.md](../prompt.md). Four questions: product breadth, visual directions, the mobile-first face, and brand/copy/type/logo/marketing. The current implementation is deliberately ignored.

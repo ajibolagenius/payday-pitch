@@ -1,5 +1,7 @@
 # Payday Pitch: unified naming report
 
+**Working follow up:** [Brand brief and naming decision](../direction/brand-brief.md), with the [overall decision queue](../direction/index.md). This report retains the candidate catalogue and research.
+
 **Date:** 26 October 2026
 **Status:** Consolidated naming research and recommendation. No name is legally cleared. Nothing is renamed until the founder decides after the test in §6.
 **Built from three agent reports:**

@@ -2,6 +2,8 @@
 
 A mobile friendly web app that turns your monthly salary into a football lineup. You pick a formation (4-4-2, 4-3-3, 3-5-2, and more), and each one splits your money differently across goalkeeper (emergency fund), defenders (fixed living costs), midfield (debt, upskilling, short term goals), forwards (wealth building), and bench (guilt free spending). It serves salary earners in Nigeria first, including people with several income streams, and switches tactics as life changes: a "Park the Bus" formation while you clear a debt, an "Attacking 4-3-3" once you are free of it. The goal is building wealth; the lineup is the method. It plans and tracks only. It never connects to a bank or moves money.
 
+**Direction handoff, 27 October 2026:** the [working briefs and founder decisions](../direction/index.md) select a four line model and a new prototype milestone. Feature 20 below is the next validation slice. The production descriptions retain their existing baseline until their specs are reconciled with the tested direction; they are not evidence that the new model, identity or bank data feature has shipped.
+
 **Build approach:** Tracer Bullet (one thin, real thread through the whole loop first, then each slice thickens one segment end to end).
 **Workflow:** Beta (after `/develop`: `/check verify`, then `/test`). The project default level of rigor. `/architect` is the recommended first stop for a feature with a real decision, but skippable when you already know the build. Any feature can carry its own tag (e.g. `· GA`) to do more or less.
 
@@ -9,27 +11,37 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 
 ## At a glance
 
-| #   | Feature                              | Phase      | Status      |
-| --- | ------------------------------------ | ---------- | ----------- |
-| 1   | Stack & architecture                 | Foundation | done        |
-| 2   | Coding standards & tooling           | Foundation | in-progress |
-| 3   | Data model                           | Foundation | in-progress |
-| 4   | Design system & visual identity      | Foundation | in-progress |
-| 5   | Sign in & accounts                   | Slice 1    | in-progress |
-| 6   | First match loop                     | Slice 1    | in-progress |
-| 7   | Tactics board                        | Slice 2    | done        |
-| 8   | Debt mode (Park the Bus)             | Slice 3    | planned     |
-| 9   | Season view                          | Slice 4    | planned     |
-| 10  | Payday reminders                     | Slice 5    | planned     |
-| 11  | Calendar export                      | Slice 5    | planned     |
-| 12  | Forward line guidance                | Slice 6    | planned     |
-| 13  | Error monitoring & product analytics | Slice 7    | planned     |
-| 14  | Legal & data rights                  | Slice 7    | planned     |
-| 15  | Free formation calculator            | Slice 7    | planned     |
-| 16  | Landing page                         | Slice 7    | planned     |
-| 17  | Production plans & limits            | Slice 7    | planned     |
-| 18  | Matchday experience                  | Slice 4    | planned     |
-| 19  | Brand mark, wordmark & identity      | Foundation | in-progress |
+| #   | Feature                                  | Phase      | Status      |
+| --- | ---------------------------------------- | ---------- | ----------- |
+| 20  | Matchday prototype and pilot preparation | Validation | planned     |
+| 1   | Stack & architecture                     | Foundation | done        |
+| 2   | Coding standards & tooling               | Foundation | in-progress |
+| 3   | Data model                               | Foundation | in-progress |
+| 4   | Design system & visual identity          | Foundation | in-progress |
+| 5   | Sign in & accounts                       | Slice 1    | in-progress |
+| 6   | First match loop                         | Slice 1    | in-progress |
+| 7   | Tactics board                            | Slice 2    | done        |
+| 8   | Debt mode (Park the Bus)                 | Slice 3    | planned     |
+| 9   | Season view                              | Slice 4    | planned     |
+| 10  | Payday reminders                         | Slice 5    | planned     |
+| 11  | Calendar export                          | Slice 5    | planned     |
+| 12  | Forward line guidance                    | Slice 6    | planned     |
+| 13  | Error monitoring & product analytics     | Slice 7    | planned     |
+| 14  | Legal & data rights                      | Slice 7    | planned     |
+| 15  | Free formation calculator                | Slice 7    | planned     |
+| 16  | Landing page                             | Slice 7    | planned     |
+| 17  | Production plans & limits                | Slice 7    | planned     |
+| 18  | Matchday experience                      | Slice 4    | planned     |
+| 19  | Brand mark, wordmark & identity          | Foundation | in-progress |
+
+## Next slice: Matchday validation
+
+### 20. Matchday prototype and pilot preparation · planned · needs a decision
+
+Turn the [product brief](../direction/product-brief.md), [brand brief](../direction/brand-brief.md) and [validation plan](../direction/validation-plan.md) into a clickable sample flow, and prepare the first three candidate friends for pilot sessions. This week's goal is prototype and recruitment at minimal cost; the desired production release remains separate.
+**Done when:** the prototype demonstrates sample before signup, four flexible lines in equally usable pitch and list views, received versus forecast remainder, the coverage month, acknowledged shortfall, checklist, adjustment, weekly food check and review; representative reminders, goals, private share preview and clean sheet states are present; the three initial candidate profiles and a session plan are recorded; the next free two pay cycle pilot and later paid benefit test are documented without claiming live bank access or money movement.
+
+- [ ] Design it (spec): `/architect Matchday prototype and pilot preparation`
 
 ## Foundations
 
