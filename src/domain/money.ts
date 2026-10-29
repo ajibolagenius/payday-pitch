@@ -145,3 +145,112 @@ export function splitMatch(
   ].sort((a, b) => a.spotIndex - b.spotIndex)
   return { lines, shortfallKobo: null }
 }
+
+// Matchday sample (spec 0011): exact distribution, a plan's headline figures
+// and goal progress. Separate from the split engine above, which stays the
+// production contract.
+
+/** Largest remainder split of `total` by integer weights: floor each share,
+ *  then hand the leftover units out by remainder, earliest index first on a
+ *  tie. BigInt keeps total × weight exact past 2^53. A zero weight total
+ *  gives all zeros rather than invented shares. */
+export function distribute(total: number, weights: number[]): number[] {
+  const sum = weights.reduce((acc, w) => acc + w, 0)
+  if (sum === 0) return weights.map(() => 0)
+  const t = BigInt(total)
+  const s = BigInt(sum)
+  const rows = weights.map((w, i) => {
+    const product = t * BigInt(w)
+    return { i, share: product / s, remainder: product % s }
+  })
+  let leftover = rows.reduce((acc, r) => acc - r.share, t)
+  const order = [...rows].sort((a, b) =>
+    a.remainder === b.remainder
+      ? a.i - b.i
+      : a.remainder > b.remainder
+        ? -1
+        : 1,
+  )
+  for (const row of order) {
+    if (leftover === BigInt(0)) break
+    row.share += BigInt(1)
+    leftover -= BigInt(1)
+  }
+  return rows.map((r) => Number(r.share))
+}
+
+export type PlanIncome = { expectedKobo: number; receivedKobo: number }
+export type PlanPurpose = {
+  plannedKobo: number
+  essential: boolean
+  requiredKobo: number | null
+}
+
+export type PlanFigures = {
+  /** R: received income in the coverage month. */
+  receivedKobo: number
+  /** U: expected income not yet received, never negative per source. */
+  outstandingKobo: number
+  /** E: essential budget (fixed required amount, else planned allowance). */
+  essentialKobo: number
+  /** P: every planned allocation, optional ones included. */
+  plannedKobo: number
+  receivedRemainderKobo: number
+  forecastRemainderKobo: number
+  leftToAssignKobo: number
+  overallGapKobo: number
+  essentialGapKobo: number
+  /** Per purpose, aligned with the input: max(required − planned, 0). */
+  underallocatedKobo: number[]
+}
+
+// The value sourcing table of spec 0011, verbatim. Opening reserve and goal
+// savings never enter; expected income never closes a received gap.
+export function planFigures(
+  incomes: PlanIncome[],
+  purposes: PlanPurpose[],
+  openingCarryKobo: number,
+): PlanFigures {
+  const sum = (values: number[]) => values.reduce((acc, v) => acc + v, 0)
+  const r = sum(incomes.map((i) => i.receivedKobo))
+  const u = sum(
+    incomes.map((i) => Math.max(i.expectedKobo - i.receivedKobo, 0)),
+  )
+  const e = sum(
+    purposes
+      .filter((p) => p.essential)
+      .map((p) => p.requiredKobo ?? p.plannedKobo),
+  )
+  const p = sum(purposes.map((x) => x.plannedKobo))
+  const o = openingCarryKobo
+  return {
+    receivedKobo: r,
+    outstandingKobo: u,
+    essentialKobo: e,
+    plannedKobo: p,
+    receivedRemainderKobo: r + o - e,
+    forecastRemainderKobo: r + o + u - e,
+    leftToAssignKobo: r + o - p,
+    overallGapKobo: Math.max(p - r - o, 0),
+    essentialGapKobo: Math.max(e - r - o, 0),
+    underallocatedKobo: purposes.map((x) =>
+      x.requiredKobo === null ? 0 : Math.max(x.requiredKobo - x.plannedKobo, 0),
+    ),
+  }
+}
+
+/** Goal bar width in basis points: floor(progress × 10000 / target), capped. */
+export function progressBasisPoints(progressKobo: number, targetKobo: number) {
+  if (targetKobo <= 0) return 0
+  const bps = (BigInt(progressKobo) * BigInt(10000)) / BigInt(targetKobo)
+  return Math.min(Number(bps), 10000)
+}
+
+/** Kobo back to the plain naira text an amount field accepts ("3333.34"). */
+export function koboToNairaInput(kobo: number): string {
+  const fraction = kobo % 100
+  const whole = String(Math.floor(kobo / 100))
+  return fraction === 0
+    ? whole
+    : `${whole}.${String(fraction).padStart(2, "0")}`
+}
