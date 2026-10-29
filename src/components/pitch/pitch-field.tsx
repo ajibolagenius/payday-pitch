@@ -5,10 +5,12 @@
 
 const STRIPE_HEIGHT = 133 / 13 // 13 alternating bands over the whole field
 
-export function PitchField() {
+// `slice` fills a board of any height by cropping, so circles stay round.
+export function PitchField({ fit = "meet" }: { fit?: "meet" | "slice" }) {
   return (
     <svg
       viewBox="0 0 100 133"
+      preserveAspectRatio={`xMidYMid ${fit}`}
       className="block h-full w-full"
       role="presentation"
       aria-hidden

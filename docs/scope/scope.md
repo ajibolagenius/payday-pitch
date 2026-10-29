@@ -13,7 +13,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 
 | #   | Feature                                  | Phase      | Status      |
 | --- | ---------------------------------------- | ---------- | ----------- |
-| 20  | Matchday prototype and pilot preparation | Validation | planned     |
+| 20  | Matchday prototype and pilot preparation | Validation | in-progress |
 | 1   | Stack & architecture                     | Foundation | done        |
 | 2   | Coding standards & tooling               | Foundation | in-progress |
 | 3   | Data model                               | Foundation | in-progress |
@@ -36,12 +36,21 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 
 ## Next slice: Matchday validation
 
-### 20. Matchday prototype and pilot preparation · planned · needs a decision
+### 20. Matchday prototype and pilot preparation · in-progress
 
 Turn the [product brief](../direction/product-brief.md), [brand brief](../direction/brand-brief.md) and [validation plan](../direction/validation-plan.md) into a clickable sample flow, and prepare the first three candidate friends for pilot sessions. This week's goal is prototype and recruitment at minimal cost; the desired production release remains separate.
 **Done when:** the prototype demonstrates sample before signup, four flexible lines in equally usable pitch and list views, received versus forecast remainder, the coverage month, acknowledged shortfall, checklist, adjustment, weekly food check and review; representative reminders, goals, private share preview and clean sheet states are present; the three initial candidate profiles and a session plan are recorded; the next free two pay cycle pilot and later paid benefit test are documented without claiming live bank access or money movement.
 
-- [ ] Design it (spec): `/architect Matchday prototype and pilot preparation`
+spec [0011](../specs/0011-matchday-prototype-pilot/index.md) · code in `src/app/(marketing)/prototype/matchday/`, `src/features/matchday-prototype/`, `src/domain/`
+
+- [x] Design it (spec): `/architect Matchday prototype and pilot preparation`
+- [x] Build it: `/develop Matchday prototype and pilot preparation`
+  - [x] Thin thread: fixture, pure calculations, public entry, simulated account, one purpose, local save, one record and a report (AC-1, AC-3, AC-5, AC-13)
+  - [x] Full builder: three salaries, four lines in pitch and list, carry forward, reserve, shortfall review and scenario picker (AC-2, AC-3, AC-4, AC-10)
+  - [x] Today and month end: adjustments, food weeks, corrections, clean sheet states and next month preview (AC-5 to AC-8)
+  - [x] Extras and session pack: goal, reminders, private share preview, candidate roster and pilot gates in `verify.md` (AC-9 to AC-12)
+- [x] Verify it: `/check verify Matchday prototype and pilot preparation`
+- [x] Test it: `/test Matchday prototype and pilot preparation`
 
 ## Foundations
 
@@ -394,6 +403,7 @@ Out of scope for the current build pass, kept so the plan stays honest.
 
 - **Bank data sync**: pull income and spending in automatically · needs a decision · GA
 - **Automated money moves**: actually split and send money (licensed money flow) · needs a decision · GA
+- **Real two pay cycle pilot**: authenticated loop on the reconciled four line model, after the sample sessions clear their gates · from spec 0011 · needs a decision
 - **Premium plan & billing**: paid tier once check ins prove the habit · needs a decision · GA
 - **Partner referrals**: fund manager or bank partnerships with disclosure · needs a decision
 - **Native mobile apps**: store apps for stronger payday notifications · needs a decision · candidate: Capacitor (wraps the existing web app, no rewrite)

@@ -3,9 +3,13 @@ import { describe, expect, it } from "vitest"
 // the Vitest harness resolves the alias and runs pure modules under src/ with
 // no React and no jsdom.
 import {
+  distribute,
   formatKobo,
   formatKoboSpoken,
+  koboToNairaInput,
   parseNaira,
+  planFigures,
+  progressBasisPoints,
   splitMatch,
   zoneShareKobo,
   type Amount,
@@ -200,6 +204,137 @@ describe("splitMatch", () => {
     expect(lines.reduce((s, l) => s + l.plannedKobo, 0)).toBe(income)
     for (const line of lines.filter((l) => l.role === "DEF")) {
       expect(line.plannedKobo).toBe(0)
+    }
+  })
+})
+
+// Spec 0011: the Matchday sample's exact distribution and headline figures.
+
+describe("distribute", () => {
+  it("hands every unit out, so shares always sum to the total", () => {
+    const shares = distribute(10_000_000, [1, 7, 7, 7, 7, 1])
+    expect(shares.reduce((a, b) => a + b, 0)).toBe(10_000_000)
+    expect(shares).toEqual([
+      333_334, 2_333_334, 2_333_333, 2_333_333, 2_333_333, 333_333,
+    ])
+  })
+
+  it("breaks an equal remainder tie by the earliest index", () => {
+    expect(distribute(10, [1, 1, 1])).toEqual([4, 3, 3])
+  })
+
+  it("gives zeros, not invented shares, when every weight is zero", () => {
+    expect(distribute(10_000, [0, 0, 0])).toEqual([0, 0, 0])
+  })
+
+  it("leaves a zero weight with nothing", () => {
+    expect(distribute(100, [0, 3, 1])).toEqual([0, 75, 25])
+  })
+
+  it("stays exact when total × weight passes 2^53", () => {
+    const total = Number.MAX_SAFE_INTEGER - 1
+    const shares = distribute(total, [3, 1])
+    expect(shares.reduce((a, b) => a + b, 0)).toBe(total)
+    expect(shares[1]).toBe(Math.floor(total / 4))
+  })
+})
+
+describe("planFigures", () => {
+  const purpose = (
+    plannedKobo: number,
+    essential: boolean,
+    requiredKobo: number | null = null,
+  ) => ({ plannedKobo, essential, requiredKobo })
+
+  it("never lets expected income close a received gap", () => {
+    const f = planFigures(
+      [{ expectedKobo: 1_000, receivedKobo: 0 }],
+      [purpose(500, true)],
+      0,
+    )
+    expect(f.overallGapKobo).toBe(500)
+    expect(f.essentialGapKobo).toBe(500)
+    expect(f.forecastRemainderKobo).toBe(500)
+  })
+
+  it("counts no outstanding income from a source paid more than expected", () => {
+    const f = planFigures(
+      [
+        { expectedKobo: 100, receivedKobo: 150 },
+        { expectedKobo: 100, receivedKobo: 40 },
+      ],
+      [],
+      0,
+    )
+    expect(f.receivedKobo).toBe(190)
+    expect(f.outstandingKobo).toBe(60)
+  })
+
+  it("uses the required amount for an essential, else its planned amount", () => {
+    const f = planFigures(
+      [],
+      [purpose(400, true, 500), purpose(300, true), purpose(900, false)],
+      0,
+    )
+    expect(f.essentialKobo).toBe(800)
+    expect(f.plannedKobo).toBe(1_600)
+  })
+
+  it("adds opening carry to both remainders and to left to assign", () => {
+    const base = planFigures([{ expectedKobo: 0, receivedKobo: 100 }], [], 0)
+    const carried = planFigures(
+      [{ expectedKobo: 0, receivedKobo: 100 }],
+      [],
+      1_000,
+    )
+    expect(carried.receivedRemainderKobo - base.receivedRemainderKobo).toBe(
+      1_000,
+    )
+    expect(carried.forecastRemainderKobo - base.forecastRemainderKobo).toBe(
+      1_000,
+    )
+    expect(carried.leftToAssignKobo - base.leftToAssignKobo).toBe(1_000)
+  })
+
+  it("flags a purpose planned below its required payment, aligned by index", () => {
+    const f = planFigures(
+      [],
+      [purpose(100, false), purpose(40_00, true, 50_00), purpose(60, true, 50)],
+      0,
+    )
+    expect(f.underallocatedKobo).toEqual([0, 10_00, 0])
+  })
+})
+
+describe("progressBasisPoints", () => {
+  it("floors rather than rounds up", () => {
+    expect(progressBasisPoints(12_500_000, 30_000_000)).toBe(4166)
+  })
+
+  it("caps at 100% when progress passes the target", () => {
+    expect(progressBasisPoints(500, 100)).toBe(10_000)
+  })
+
+  it("returns 0 for a zero target instead of dividing by zero", () => {
+    expect(progressBasisPoints(500, 0)).toBe(0)
+  })
+})
+
+describe("koboToNairaInput", () => {
+  it("drops the decimals for whole naira", () => {
+    expect(koboToNairaInput(2_500_000)).toBe("25000")
+    expect(koboToNairaInput(0)).toBe("0")
+  })
+
+  it("keeps two padded decimals otherwise", () => {
+    expect(koboToNairaInput(333_334)).toBe("3333.34")
+    expect(koboToNairaInput(5)).toBe("0.05")
+    expect(koboToNairaInput(150)).toBe("1.50")
+  })
+
+  it("round trips through parseNaira", () => {
+    for (const kobo of [0, 5, 150, 333_334, 2_500_000]) {
+      expect(parseNaira(koboToNairaInput(kobo), true)).toBe(kobo)
     }
   })
 })
